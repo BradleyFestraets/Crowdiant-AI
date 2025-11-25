@@ -1,0 +1,210 @@
+# Sprint Status Tracking - Crowdiant Restaurant OS
+# Generated: 2025-11-26 16:45
+# Project: Crowdiant AI
+# Project Key: crowdiant-os
+# Tracking System: file-system
+# Story Location: docs/sprint-artifacts/
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic exists in epic file but not contexted
+#   - contexted: Epic tech context created (*create-epic-tech-context)
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - drafted: Story file created (*create-story)
+#   - ready-for-dev: Story context created (*create-story-context)
+#   - in-progress: Developer actively working (*dev-start)
+#   - review: Implementation complete, in code review
+#   - done: Story fully completed and deployed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - completed: Retrospective has been done (*epic-retrospective)
+
+# WORKFLOW NOTES:
+# ===============
+# - Epics should be 'contexted' before stories drafted
+# - SM drafts stories progressively (typically after previous story done)
+# - Dev moves story: backlog → in-progress → review → done
+# - All statuses start as 'backlog' until workflow commands run
+
+generated: 2025-11-26 16:45
+project: Crowdiant AI
+project_key: crowdiant-os
+tracking_system: file-system
+story_location: docs/sprint-artifacts/
+
+development_status:
+  # EPIC 1: Foundation & Platform Setup (Sprint 0)
+  epic-1: backlog
+  1-1-project-initialization-t3-stack-setup: backlog
+  1-2-database-architecture-multi-tenant-schema: backlog
+  1-3-authentication-authorization-framework: backlog
+  1-4-shared-ui-component-library-setup: backlog
+  1-5-development-deployment-pipeline: backlog
+  1-6-observability-monitoring-setup: backlog
+  epic-1-retrospective: optional
+
+  # EPIC 2: User & Venue Management (Sprint 1)
+  epic-2: backlog
+  2-1-venue-registration-onboarding: backlog
+  2-2-staff-invitation-management: backlog
+  2-3-user-authentication-login-logout: backlog
+  2-4-password-reset-flow: backlog
+  2-5-multi-venue-access-switching: backlog
+  2-6-customer-account-creation-optional: backlog
+  2-7-customer-profile-management: backlog
+  2-8-customer-visit-history: backlog
+  2-9-role-based-access-control-testing: backlog
+  epic-2-retrospective: optional
+
+  # EPIC 3: Express Checkout System (Sprint 2-3)
+  epic-3: backlog
+  3-1-stripe-connect-integration-setup: backlog
+  3-2-open-tab-with-pre-authorization: backlog
+  3-3-real-time-tab-view-for-customers: backlog
+  3-4-add-items-to-open-tab: backlog
+  3-5-customer-self-close-tab: backlog
+  3-6-server-close-tab: backlog
+  3-7-walk-away-detection-system: backlog
+  3-8-tab-access-token-qr-code-generation: backlog
+  3-9-digital-receipt-generation-delivery: backlog
+  3-10-pre-authorization-amount-calculation: backlog
+  3-11-pre-auth-excess-handling: backlog
+  3-12-tab-state-machine-implementation: backlog
+  3-13-express-checkout-analytics-dashboard: backlog
+  epic-3-retrospective: optional
+
+  # EPIC 4: Point of Sale Core (Sprint 4-5)
+  epic-4: backlog
+  4-1-pos-terminal-layout-order-entry: backlog
+  4-2-menu-item-modifiers-special-instructions: backlog
+  4-3-order-modification-cancellation: backlog
+  4-4-tax-calculation: backlog
+  4-5-discounts-comps: backlog
+  4-6-split-payment-multiple-methods: backlog
+  4-7-check-splitting-even-by-item-by-seat: backlog
+  4-8-card-present-payment-processing: backlog
+  4-9-cash-payment-processing: backlog
+  4-10-cash-drawer-management: backlog
+  4-11-daily-sales-reports: backlog
+  4-12-pos-order-type-support: backlog
+  epic-4-retrospective: optional
+
+  # EPIC 5: Menu Management (Sprint 6)
+  epic-5: backlog
+  5-1-menu-category-structure: backlog
+  5-2-menu-item-creation-configuration: backlog
+  5-3-modifier-groups-options: backlog
+  5-4-item-availability-controls: backlog
+  5-5-time-based-menu-availability: backlog
+  5-6-menu-duplication-for-multi-venue: backlog
+  5-7-menu-performance-analytics: backlog
+  epic-5-retrospective: optional
+
+  # EPIC 6: Kitchen Display System (Sprint 7)
+  epic-6: backlog
+  6-1-kitchen-display-layout-order-queue: backlog
+  6-2-order-status-management-bump-system: backlog
+  6-3-allergy-special-instruction-highlighting: backlog
+  6-4-station-based-order-filtering: backlog
+  6-5-order-timing-estimated-completion: backlog
+  6-6-late-order-alerts: backlog
+  6-7-kitchen-to-server-communication: backlog
+  6-8-kds-configuration-display-settings: backlog
+  epic-6-retrospective: optional
+
+  # EPIC 7: Trust & Reputation Engine (Sprint 8)
+  epic-7: backlog
+  7-1-trust-score-calculation-engine: backlog
+  7-2-trust-level-progression-display: backlog
+  7-3-pre-auth-amount-adjustment-based-on-trust: backlog
+  7-4-cross-venue-trust-transfer: backlog
+  7-5-trust-event-logging: backlog
+  7-6-negative-event-handling-chargebacks-disputes: backlog
+  7-7-vip-nomination-system: backlog
+  epic-7-retrospective: optional
+
+  # EPIC 8: Table & Floor Management (Sprint 9)
+  epic-8: backlog
+  8-1-floor-plan-configuration: backlog
+  8-2-real-time-table-status-display: backlog
+  8-3-seating-parties: backlog
+  8-4-table-turn-time-tracking: backlog
+  8-5-server-table-transfers: backlog
+  8-6-table-combining-for-large-parties: backlog
+  epic-8-retrospective: optional
+
+  # EPIC 9: Customer Communication (Sprint 10)
+  epic-9: backlog
+  9-1-sms-notification-infrastructure: backlog
+  9-2-express-checkout-sms-confirmations: backlog
+  9-3-receipt-delivery-via-sms-email: backlog
+  9-4-feedback-request-system: backlog
+  9-5-marketing-communications-opt-in: backlog
+  9-6-notification-preferences-management: backlog
+  epic-9-retrospective: optional
+
+  # EPIC 10: Analytics & Reporting (Sprint 11)
+  epic-10: backlog
+  10-1-real-time-dashboard: backlog
+  10-2-historical-sales-reports: backlog
+  10-3-express-checkout-analytics: backlog
+  10-4-labor-cost-analysis: backlog
+  10-5-menu-engineering-report: backlog
+  10-6-multi-venue-performance-comparison: backlog
+  10-7-custom-report-builder: backlog
+  epic-10-retrospective: optional
+
+  # EPIC 11: Reservation System (Sprint 12)
+  epic-11: backlog
+  11-1-online-reservation-booking: backlog
+  11-2-no-show-protection-card-hold: backlog
+  11-3-reservation-management-for-hosts: backlog
+  11-4-automated-reservation-reminders: backlog
+  11-5-wait-time-prediction: backlog
+  11-6-waitlist-management: backlog
+  epic-11-retrospective: optional
+
+  # EPIC 12: Loyalty Program (Sprint 13)
+  epic-12: backlog
+  12-1-points-earning-system: backlog
+  12-2-loyalty-tiers: backlog
+  12-3-rewards-catalog-redemption: backlog
+  12-4-venue-loyalty-configuration: backlog
+  12-5-loyalty-program-roi-tracking: backlog
+  epic-12-retrospective: optional
+
+  # EPIC 13: Inventory Management (Sprint 14)
+  epic-13: backlog
+  13-1-inventory-item-setup-tracking: backlog
+  13-2-par-level-alerts: backlog
+  13-3-waste-tracking: backlog
+  13-4-suggested-purchase-orders: backlog
+  epic-13-retrospective: optional
+
+  # EPIC 14: Integrations & Administration (Sprint 15)
+  epic-14: backlog
+  14-1-multi-payment-processor-support: backlog
+  14-2-accounting-software-integration: backlog
+  14-3-developer-api-documentation: backlog
+  14-4-platform-administration-tools: backlog
+  epic-14-retrospective: optional
+
+# SUMMARY:
+# ========
+# Total Epics: 14
+# Total Stories: 98
+# Total Retrospectives: 14
+# 
+# Current Status Distribution:
+#   Epics: 14 backlog, 0 contexted
+#   Stories: 98 backlog, 0 drafted, 0 ready-for-dev, 0 in-progress, 0 review, 0 done
+#   Retrospectives: 14 optional, 0 completed
+#
+# Next Actions:
+#   1. Run *create-epic-tech-context for Epic 1 (Foundation & Platform Setup)
+#   2. After Epic 1 contexted, run *create-story for Story 1.1 (Project Initialization)
+#   3. Continue sprint-by-sprint progression through Sprints 0-15
