@@ -1,0 +1,342 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1</storyId>
+    <title>Project Initialization &amp; T3 Stack Setup</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/1-1-project-initialization-t3-stack-setup.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer</asA>
+    <iWant>to initialize the project with the T3 Stack</iWant>
+    <soThat>we have a solid TypeScript foundation with modern tooling and a reproducible development environment</soThat>
+    <tasks>
+      <task id="1" ac="1,2">
+        <title>Initialize T3 Stack Project</title>
+        <subtasks>
+          <subtask>Navigate to parent directory where project will be created</subtask>
+          <subtask>Run T3 Stack creation command with all required flags</subtask>
+          <subtask>Verify command completes successfully</subtask>
+          <subtask>Change into project directory: cd crowdiant-os</subtask>
+          <subtask>Inspect directory structure (confirm src/, prisma/, public/ present)</subtask>
+          <subtask>Install dependencies with pnpm: pnpm install</subtask>
+          <subtask>Verify no errors during installation</subtask>
+          <subtask>Commit initial scaffold: git init &amp;&amp; git add . &amp;&amp; git commit -m "feat: Initialize T3 Stack project"</subtask>
+        </subtasks>
+      </task>
+      <task id="2" ac="3">
+        <title>Configure TypeScript Strict Mode</title>
+        <subtasks>
+          <subtask>Open tsconfig.json in editor</subtask>
+          <subtask>Locate compilerOptions section</subtask>
+          <subtask>Set "strict": true if not already enabled</subtask>
+          <subtask>Verify path aliases configured (@/* → ./src/*)</subtask>
+          <subtask>Run type check: pnpm tsc --noEmit</subtask>
+          <subtask>Fix any type errors (should be none in fresh project)</subtask>
+          <subtask>Commit: git commit -am "chore: Enable TypeScript strict mode"</subtask>
+        </subtasks>
+      </task>
+      <task id="3" ac="4">
+        <title>Setup ESLint and Prettier</title>
+        <subtasks>
+          <subtask>Verify ESLint already configured (T3 includes it)</subtask>
+          <subtask>Install Prettier Tailwind plugin: pnpm add -D prettier-plugin-tailwindcss</subtask>
+          <subtask>Create .prettierrc with configuration</subtask>
+          <subtask>Add lint and format scripts to package.json</subtask>
+          <subtask>Run pnpm format to format all files</subtask>
+          <subtask>Run pnpm lint to verify no linting errors</subtask>
+          <subtask>Test format check: pnpm format:check</subtask>
+          <subtask>Commit: git commit -am "chore: Configure ESLint and Prettier with Tailwind plugin"</subtask>
+        </subtasks>
+      </task>
+      <task id="4" ac="5">
+        <title>Create Environment Variable Template</title>
+        <subtasks>
+          <subtask>Create .env.example file in project root</subtask>
+          <subtask>Add all foundation environment variables</subtask>
+          <subtask>Add detailed comments for each variable</subtask>
+          <subtask>Document NEXTAUTH_SECRET generation command</subtask>
+          <subtask>Verify .env.local in .gitignore (should be present)</subtask>
+          <subtask>Copy .env.example to .env.local for local dev</subtask>
+          <subtask>Generate NEXTAUTH_SECRET: openssl rand -base64 32</subtask>
+          <subtask>Paste generated secret into .env.local</subtask>
+          <subtask>Set DATABASE_URL to placeholder (will be configured in Story 1.2)</subtask>
+          <subtask>Commit: git add .env.example &amp;&amp; git commit -m "chore: Add environment variable template"</subtask>
+        </subtasks>
+      </task>
+      <task id="5" ac="6">
+        <title>Update README with Setup Instructions</title>
+        <subtasks>
+          <subtask>Open README.md in editor</subtask>
+          <subtask>Replace default T3 content with project-specific instructions</subtask>
+          <subtask>Add "Prerequisites" section (Node.js 20.x, pnpm, PostgreSQL)</subtask>
+          <subtask>Add "Getting Started" section with numbered steps</subtask>
+          <subtask>Add "Development" section (commands for dev, build, lint, format)</subtask>
+          <subtask>Add "Project Structure" section (explain src/, prisma/, public/)</subtask>
+          <subtask>Add "Environment Variables" section referencing .env.example</subtask>
+          <subtask>Add "Troubleshooting" section for common issues</subtask>
+          <subtask>Add links to T3 Stack docs, Next.js docs, Prisma docs</subtask>
+          <subtask>Test instructions by having another developer follow them</subtask>
+          <subtask>Commit: git commit -am "docs: Add comprehensive setup instructions to README"</subtask>
+        </subtasks>
+      </task>
+      <task id="6" ac="7">
+        <title>Verify Development Server</title>
+        <subtasks>
+          <subtask>Ensure .env.local configured with valid values</subtask>
+          <subtask>Start dev server: pnpm dev</subtask>
+          <subtask>Wait for compilation to complete (watch for "Ready" message)</subtask>
+          <subtask>Open browser to http://localhost:3000</subtask>
+          <subtask>Verify T3 welcome page loads without errors</subtask>
+          <subtask>Open browser dev tools console, verify no errors</subtask>
+          <subtask>Test hot reload: edit src/app/page.tsx, save, verify page updates</subtask>
+          <subtask>Check terminal for any warnings or errors</subtask>
+          <subtask>Stop server (Ctrl+C), restart, verify still works</subtask>
+        </subtasks>
+      </task>
+      <task id="7" ac="8">
+        <title>Create Health Check Endpoint</title>
+        <subtasks>
+          <subtask>Create directory: src/app/api/health</subtask>
+          <subtask>Create file: src/app/api/health/route.ts</subtask>
+          <subtask>Implement GET handler returning JSON with status, timestamp, service, environment</subtask>
+          <subtask>Start dev server if not running: pnpm dev</subtask>
+          <subtask>Test endpoint in browser: http://localhost:3000/api/health</subtask>
+          <subtask>Verify JSON response structure correct</subtask>
+          <subtask>Test with curl: curl http://localhost:3000/api/health</subtask>
+          <subtask>Verify status code 200</subtask>
+          <subtask>Verify timestamp is recent (within 1 second of request)</subtask>
+          <subtask>Commit: git add src/app/api/health &amp;&amp; git commit -m "feat: Add health check endpoint"</subtask>
+        </subtasks>
+      </task>
+      <task id="8" ac="1,2,3,4,5,6,7,8">
+        <title>Final Validation &amp; Documentation</title>
+        <subtasks>
+          <subtask>Run full test suite (when tests added in Story 1.2+)</subtask>
+          <subtask>Run type check: pnpm tsc --noEmit (should pass)</subtask>
+          <subtask>Run linter: pnpm lint (should pass)</subtask>
+          <subtask>Run formatter check: pnpm format:check (should pass)</subtask>
+          <subtask>Verify all 8 acceptance criteria met</subtask>
+          <subtask>Review all commits for clear messages</subtask>
+          <subtask>Push to GitHub (if repository created): git push origin main</subtask>
+          <subtask>Verify README accurate by having team member clone and follow instructions</subtask>
+          <subtask>Document any deviations from T3 defaults in dev notes</subtask>
+          <subtask>Mark story as complete in sprint-status.yaml</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC1">
+      <description>T3 Stack Initialization - Execute T3 Stack creation command successfully with all components (Next.js, tRPC, Prisma, NextAuth, Tailwind) and verify project directory created with correct structure</description>
+      <validation>Directory structure matches T3 Stack standard layout</validation>
+    </criterion>
+    <criterion id="AC2">
+      <description>Dependency Installation - All npm/pnpm dependencies install successfully with pnpm as package manager, no conflicts or version warnings, lockfile generated</description>
+      <validation>pnpm install completes with exit code 0</validation>
+    </criterion>
+    <criterion id="AC3">
+      <description>TypeScript Configuration - Enable TypeScript strict mode in tsconfig.json, configure path aliases (@/* → ./src/*), no compilation errors, type checking passes</description>
+      <validation>Running pnpm tsc --noEmit exits with code 0</validation>
+    </criterion>
+    <criterion id="AC4">
+      <description>ESLint and Prettier Setup - ESLint configured with Next.js recommended rules, Prettier configured for consistent formatting with Tailwind plugin, npm scripts added for lint and format, all files pass linting and formatting checks</description>
+      <validation>Both lint and format:check commands pass</validation>
+    </criterion>
+    <criterion id="AC5">
+      <description>Environment Variables Configuration - Create .env.example with all required foundation variables (DATABASE_URL, NEXTAUTH_SECRET, NEXTAUTH_URL, NODE_ENV, LOG_LEVEL) with comments explaining each variable, .env.local in .gitignore, local .env.local created for development</description>
+      <validation>.env.example contains all required variables with comments</validation>
+    </criterion>
+    <criterion id="AC6">
+      <description>README Documentation - Update README.md with comprehensive setup instructions including prerequisites (Node.js 20.x, pnpm, PostgreSQL), step-by-step setup process, troubleshooting section, links to documentation, folder structure explanation</description>
+      <validation>Another team member can follow README and successfully start dev server</validation>
+    </criterion>
+    <criterion id="AC7">
+      <description>Development Server Verification - Start development server with pnpm dev, server runs on http://localhost:3000 without errors, browser loads default T3 app welcome page, hot reload works, no console errors</description>
+      <validation>Navigate to http://localhost:3000 and see T3 welcome page</validation>
+    </criterion>
+    <criterion id="AC8">
+      <description>Health Check Endpoint - Create basic health check API route at src/app/api/health/route.ts, endpoint responds at http://localhost:3000/api/health with JSON containing status, timestamp, service, environment, returns status code 200</description>
+      <validation>curl http://localhost:3000/api/health returns expected JSON structure</validation>
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <artifact>
+        <path>docs/sprint-artifacts/epic-1-context.md</path>
+        <title>Epic 1 Technical Specification: Foundation &amp; Platform Setup</title>
+        <section>Overview</section>
+        <snippet>Epic 1 establishes the foundational architecture and development infrastructure for the Crowdiant Restaurant OS platform. This epic creates the technical bedrock upon which all subsequent features will be built, including project scaffolding using the T3 Stack, multi-tenant database architecture with Prisma, authentication/authorization framework with NextAuth.js, shared UI component library with shadcn/ui, CI/CD pipeline with Vercel, and comprehensive observability infrastructure with Sentry.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/sprint-artifacts/epic-1-context.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Objectives and Scope - In Scope</section>
+        <snippet>T3 Stack initialization (Next.js 14+, TypeScript, tRPC, Prisma, NextAuth, Tailwind), PostgreSQL database setup with PlanetScale or Supabase, Core Prisma schema with multi-tenant models, NextAuth.js authentication with multi-tenant session management, tRPC middleware for authentication and venue access control, shadcn/ui component library setup with core components, Vercel deployment pipeline with preview environments, Environment variable management (.env.example, Vercel configuration), Sentry error tracking and performance monitoring, Structured logging with Winston, Health check endpoints (/api/health, /api/health/db, /api/health/redis), Development documentation (README.md, setup instructions)</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/sprint-artifacts/epic-1-context.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>System Architecture Alignment - T3 Stack Alignment</section>
+        <snippet>The architecture document mandates the T3 Stack as the foundation: npx create-t3-app@latest crowdiant-os --typescript --tailwind --trpc --prisma --nextAuth --app-router. This ensures Next.js 14+ App Router (Server components, streaming, modern patterns), TypeScript strict mode (Type safety for complex restaurant domain), tRPC (End-to-end type safety for all API calls), Prisma (Type-safe database queries with migration management), NextAuth.js (Extensible authentication for multi-tenant scenarios), Tailwind CSS (Utility-first styling with shadcn/ui components)</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/sprint-artifacts/epic-1-context.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Dependencies and Integrations - Package Dependencies</section>
+        <snippet>Production dependencies: Next.js 14.2+, React 18.3+, TypeScript 5.x, tRPC 11.x, Prisma 5.14+, NextAuth 5.x (beta), Tailwind CSS 3.4+, Zod 3.x, Sentry 8.x, Winston 3.13+. Development dependencies: ESLint, Prettier, Vitest, Playwright, TypeScript types for React and Node.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/architecture.md</path>
+        <title>Crowdiant Restaurant OS - Architecture</title>
+        <section>Project Initialization</section>
+        <snippet>First implementation story should execute: npx create-t3-app@latest crowdiant-os --typescript --tailwind --trpc --prisma --nextAuth --app-router. This establishes the base architecture with these decisions: Framework: Next.js 14+ with App Router, Language: TypeScript (strict mode), API Layer: tRPC for type-safe client-server communication, ORM: Prisma with PostgreSQL, Auth: NextAuth.js (extended for multi-tenant), Styling: Tailwind CSS + shadcn/ui, Validation: Built-in tRPC + Zod</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Project Structure</section>
+        <snippet>Defines standard directory structure: src/app/ (Next.js App Router with route groups for auth, dashboard, pos, customer), src/components/ (UI components including shadcn/ui, forms, POS-specific, kitchen KDS, checkout, shared), src/server/ (tRPC routers, database client, auth config), src/lib/ (utilities, validators, constants, formatters), prisma/ (schema, migrations, seed data), public/ (fonts, images)</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Decision Summary</section>
+        <snippet>Technology stack decisions: Framework (Next.js 14.x App Router), Language (TypeScript 5.x strict), Database (PostgreSQL 16.x), ORM (Prisma 5.x), Auth (NextAuth.js 5.x + Custom), API (tRPC 11.x), Real-time (Socket.io 4.x), Payments (Stripe Connect), Cache (Redis 7.x), Queue (BullMQ 5.x), Email (Resend), SMS (Twilio), Storage (AWS S3), Search (PostgreSQL FTS), Styling (Tailwind 3.x + shadcn/ui), Testing (Vitest + Playwright), Deployment (Vercel + PlanetScale)</snippet>
+      </artifact>
+    </docs>
+    <code>
+      <!-- No existing code yet - this is the foundation story creating the initial project structure -->
+      <artifact>
+        <path>src/app/api/health/route.ts</path>
+        <kind>api-route</kind>
+        <symbol>GET</symbol>
+        <lines>all</lines>
+        <reason>Health check endpoint to be created in this story - verifies application is running and responsive</reason>
+      </artifact>
+      <artifact>
+        <path>tsconfig.json</path>
+        <kind>config</kind>
+        <symbol>compilerOptions</symbol>
+        <lines>all</lines>
+        <reason>TypeScript configuration requiring strict mode enablement and path alias verification</reason>
+      </artifact>
+      <artifact>
+        <path>.prettierrc</path>
+        <kind>config</kind>
+        <symbol>configuration</symbol>
+        <lines>all</lines>
+        <reason>Prettier configuration to be created with Tailwind plugin for consistent code formatting</reason>
+      </artifact>
+      <artifact>
+        <path>.env.example</path>
+        <kind>config</kind>
+        <symbol>environment-variables</symbol>
+        <lines>all</lines>
+        <reason>Environment variable template to be created documenting all required foundation variables</reason>
+      </artifact>
+      <artifact>
+        <path>README.md</path>
+        <kind>documentation</kind>
+        <symbol>setup-instructions</symbol>
+        <lines>all</lines>
+        <reason>Project documentation requiring comprehensive update with setup instructions, prerequisites, and troubleshooting</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <dependency name="next" version="^14.2.0">Next.js framework with App Router</dependency>
+        <dependency name="react" version="^18.3.0">React library</dependency>
+        <dependency name="typescript" version="^5.0.0">TypeScript compiler</dependency>
+        <dependency name="@trpc/server" version="^11.0.0">tRPC server</dependency>
+        <dependency name="@trpc/client" version="^11.0.0">tRPC client</dependency>
+        <dependency name="@trpc/react-query" version="^11.0.0">tRPC React Query integration</dependency>
+        <dependency name="@prisma/client" version="^5.14.0">Prisma ORM client</dependency>
+        <dependency name="next-auth" version="^5.0.0-beta">NextAuth.js authentication</dependency>
+        <dependency name="tailwindcss" version="^3.4.0">Tailwind CSS</dependency>
+        <dependency name="zod" version="^3.23.0">Schema validation</dependency>
+        <dependency name="@tanstack/react-query" version="^5.0.0">React Query for data fetching</dependency>
+        <devDependency name="prisma" version="^5.14.0">Prisma CLI and schema management</devDependency>
+        <devDependency name="prettier" version="^3.0.0">Code formatter</devDependency>
+        <devDependency name="prettier-plugin-tailwindcss" version="^0.5.0">Prettier plugin for Tailwind class sorting</devDependency>
+        <devDependency name="eslint" version="^8.0.0">JavaScript/TypeScript linter</devDependency>
+        <devDependency name="eslint-config-next" version="^14.0.0">ESLint config for Next.js</devDependency>
+        <devDependency name="@types/node" version="^20.0.0">TypeScript types for Node.js</devDependency>
+        <devDependency name="@types/react" version="^18.3.0">TypeScript types for React</devDependency>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Package manager must be pnpm (not npm or yarn) for faster installs and strict dependency resolution</constraint>
+    <constraint>TypeScript strict mode must be enabled (no implicit any types) for type safety across complex restaurant domain</constraint>
+    <constraint>All code must pass ESLint and Prettier checks before commit (enforced by npm scripts)</constraint>
+    <constraint>Use absolute imports via @/ prefix (cleaner than relative paths ../../../)</constraint>
+    <constraint>Commit message convention: feat/fix/chore/docs/refactor/test prefixes for clear git history</constraint>
+    <constraint>Environment variables must never be committed to git (.env.local in .gitignore)</constraint>
+    <constraint>Node.js 20.x LTS required (use nvm to manage versions)</constraint>
+    <constraint>PostgreSQL 16 required for database (or managed PlanetScale/Supabase equivalent)</constraint>
+    <constraint>Follow T3 Stack conventions for folder structure and file organization</constraint>
+    <constraint>All API routes must use Next.js App Router patterns (app/api/ directory)</constraint>
+    <constraint>Health check endpoints must return JSON with consistent structure: status, timestamp, service, environment</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Health Check API</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/health → { status: string, timestamp: number, service: string, environment: string }</signature>
+      <path>src/app/api/health/route.ts</path>
+    </interface>
+    <interface>
+      <name>TypeScript Configuration</name>
+      <kind>config-interface</kind>
+      <signature>tsconfig.json compilerOptions: { strict: true, baseUrl: ".", paths: { "@/*": ["./src/*"] } }</signature>
+      <path>tsconfig.json</path>
+    </interface>
+    <interface>
+      <name>Prettier Configuration</name>
+      <kind>config-interface</kind>
+      <signature>.prettierrc: { semi: true, trailingComma: "all", singleQuote: false, printWidth: 100, tabWidth: 2, plugins: ["prettier-plugin-tailwindcss"] }</signature>
+      <path>.prettierrc</path>
+    </interface>
+    <interface>
+      <name>Environment Variables</name>
+      <kind>config-interface</kind>
+      <signature>.env.example: DATABASE_URL, NEXTAUTH_SECRET, NEXTAUTH_URL, NODE_ENV, LOG_LEVEL (with comments for each)</signature>
+      <path>.env.example</path>
+    </interface>
+    <interface>
+      <name>Package Scripts</name>
+      <kind>npm-scripts</kind>
+      <signature>package.json scripts: { dev, build, start, lint, format, format:check }</signature>
+      <path>package.json</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>This foundation story focuses on manual verification of acceptance criteria rather than automated tests. Future stories will introduce testing infrastructure: Unit tests with Vitest (80% coverage target for services and utilities), Integration tests with Vitest + Prisma test database (100% coverage for authentication flows and database operations), E2E tests with Playwright (100% coverage for critical user journeys). Testing standards to be established in Story 1.2+ include: test files co-located with source or in tests/ directory, test naming convention (*.test.ts, *.spec.ts), use of Vitest's describe/it/expect patterns, mocking strategies for external services, CI/CD integration for automated test execution on pull requests.</standards>
+    <locations>
+      <location>tests/unit/ - Unit tests for services, utilities, and business logic (Story 1.2+)</location>
+      <location>tests/integration/ - Integration tests for API routes, database operations, authentication (Story 1.3+)</location>
+      <location>tests/e2e/ - End-to-end tests with Playwright for user flows (Story 1.5+)</location>
+      <location>**/*.test.ts - Co-located unit tests next to source files</location>
+    </locations>
+    <ideas>
+      <idea ac="AC1">Manual verification: Check that crowdiant-os directory exists with expected T3 Stack structure (src/, prisma/, public/, package.json)</idea>
+      <idea ac="AC2">Manual verification: Run pnpm install and verify exit code 0, check for pnpm-lock.yaml generation</idea>
+      <idea ac="AC3">Manual verification: Run pnpm tsc --noEmit and verify exit code 0, inspect tsconfig.json for strict: true and path aliases</idea>
+      <idea ac="AC4">Manual verification: Run pnpm lint and pnpm format:check, both should pass without errors or warnings</idea>
+      <idea ac="AC5">Manual verification: Inspect .env.example for all required variables with comments, verify .env.local exists locally but not in git</idea>
+      <idea ac="AC6">Manual verification: Have another team member clone repo and follow README instructions to verify completeness and accuracy</idea>
+      <idea ac="AC7">Manual verification: Run pnpm dev, navigate to http://localhost:3000 in browser, verify T3 welcome page loads, test hot reload by editing src/app/page.tsx</idea>
+      <idea ac="AC8">Manual verification: Test health check endpoint with curl http://localhost:3000/api/health, verify JSON response structure and status code 200</idea>
+      <idea ac="ALL">Future automated test: Create E2E test that clones repo, runs setup commands from README, verifies dev server starts, health check responds (Story 1.5+)</idea>
+    </ideas>
+  </tests>
+</story-context>

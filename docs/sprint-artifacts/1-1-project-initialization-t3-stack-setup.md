@@ -1,6 +1,6 @@
 # Story 1.1: Project Initialization & T3 Stack Setup
 
-**Status:** drafted  
+**Status:** ready-for-dev  
 **Story ID:** E1.1  
 **Epic:** Epic 1 - Foundation & Platform Setup  
 **Sprint:** Sprint 0  
@@ -530,8 +530,9 @@ test: Add or modify tests
 
 ### Context Reference
 
-<!-- Story context XML will be added here by *create-story-context command -->
-<!-- This section is populated when running *story-ready-for-dev -->
+- **Story Context XML:** `docs/sprint-artifacts/1-1-project-initialization-t3-stack-setup.context.xml`
+- **Generated:** 2025-11-26
+- **Contains:** User story, acceptance criteria, tasks/subtasks, documentation references, code artifacts, dependencies, constraints, interfaces, testing ideas
 
 ---
 
