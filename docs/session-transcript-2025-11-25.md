@@ -978,15 +978,182 @@ _Ready for Sprint 0 kickoff_
 
 ---
 
+### Gap Resolution - Addressing Implementation Concerns
+
+**User Request:** Address identified implementation readiness gaps
+
+**Actions Taken:**
+
+#### 1. Story E1.6: Observability & Monitoring Setup (160 lines)
+- Added comprehensive observability story to Epic E1 (Sprint 0)
+- **Sentry Integration:** Error tracking + APM with performance monitoring
+- **Structured Logging:** Winston with JSON format and request ID tracking
+- **Health Checks:** `/api/health`, `/api/health/db`, `/api/health/redis`
+- **Metrics:** API response times (p50, p95, p99), cache hit rates, payment success rates
+- **Alerts:** Payment failures, database issues, high response times
+- **Implementation Code:** Included Sentry setup, logger config, health check endpoints
+
+#### 2. Story E3.1: Stripe Connect Enhanced (200→430 lines)
+- Expanded with **20+ edge case scenarios** across 5 categories:
+
+**Onboarding Edge Cases:**
+- Incomplete/abandoned onboarding with retry flows
+- Failed verification with specific error guidance
+- Multiple onboarding attempts prevention
+
+**Payment Authorization Edge Cases:**
+- Insufficient funds with alternative payment suggestion
+- Card expiration detection and update flows
+- Network timeouts with exponential backoff (3 retries)
+- 3D Secure required scenarios with timeout handling
+
+**Capture & Settlement Edge Cases:**
+- Pre-auth expired (after 7 days) with new payment intent
+- Capture amount exceeds pre-auth (cross-ref E3.11)
+- Partial capture failures with reconciliation
+- Disputes/chargebacks with evidence upload
+
+**Account Status Edge Cases:**
+- Account disabled by Stripe with manual payment fallback
+- Payout failures with bank update prompts
+- Negative balance monitoring and alerts
+
+**Network & Infrastructure Edge Cases:**
+- Webhook delivery failures with dead letter queue
+- Race conditions with idempotency keys
+- Database failures during webhooks with retry strategy
+
+- **Error Response Schema:** Standardized `StripeError` type
+- **Fallback Strategy:** Manual payment mode when Stripe unavailable
+- **Monitoring:** Payment success rate tracking (target >98%)
+
+#### 3. Story E3.5: Customer Self-Close Tab Enhanced (120→270 lines)
+- Added **15+ error scenarios** across 6 categories:
+
+**Capture Failures:**
+- Insufficient funds with payment method change option
+- Card expired with update payment flow
+- Pre-auth expired with server notification
+- Network timeout with background verification
+
+**Tip Calculation Edge Cases:**
+- Tip exceeds pre-auth (cross-ref E3.11)
+- Invalid custom tip validation
+
+**Receipt Delivery Failures:**
+- SMS/email failures with retry logic (3 attempts)
+- Fallback to database storage for re-request
+
+**Concurrent Operations:**
+- Server + customer close simultaneously (row locking)
+- Double-click prevention with idempotency
+
+**Walk-Away Detection Conflicts:**
+- Customer closes during grace period
+- Auto-close job cancellation
+
+**Database/System Failures:**
+- Payment captured but DB unavailable (background retry)
+- Redis unavailable (graceful skip)
+
+- **Error Response Schema:** Standardized `CloseTabError` type
+- **Recovery Flows:** Customer escape hatches for all failures
+- **User Experience:** Customer-friendly error messages defined
+- **Monitoring:** Close tab success rate tracking
+
+#### 4. Technical Spec 10: Redis Resilience & Fallback Strategy (600 lines)
+- **Complete failure detection:** Health check every 10 seconds
+- **Connection resilience:** Auto-reconnection with retry strategy
+- **Graceful degradation by use case:**
+
+**Trust Score Cache:**
+- Fallback: Query PostgreSQL directly (10x slower but functional)
+- Implementation: Check `isRedisAvailable()` before cache operations
+
+**Session Storage:**
+- Fallback: Database-backed sessions (NextAuth adapter)
+- Implementation: Dual write (DB + Redis cache)
+
+**BullMQ Job Queue:**
+- Fallback: In-memory queue with immediate execution for critical jobs
+- Critical jobs (payment notifications) run synchronously
+- Non-critical jobs queued in memory, replay on recovery
+
+**Rate Limiting:**
+- Fallback: Fail open (allow requests) with monitoring alerts
+
+**Table Status Cache:**
+- Fallback: Skip cache, use Socket.io as primary
+
+- **Performance Impact:** 5-10x slower without Redis, still <100ms response
+- **No Data Loss:** PostgreSQL is source of truth
+- **Recovery Procedures:** Automatic in-memory queue processing
+- **Monitoring:** Connection status, cache hit rate, fallback usage, in-memory queue size
+
+#### 5. Technical Spec 11: Socket.io Authentication & Security (400 lines)
+- **JWT-based authentication:** NextAuth session token validation
+- **Multi-tenant isolation:** Room-based access control (`venue:${venueId}`)
+- **Role-based authorization:**
+  - Kitchen staff: Access to `venue:${venueId}:kitchen` rooms
+  - Servers: Access to venue rooms and tab management
+  - Customers: Signed tab tokens (separate `TAB_TOKEN_SECRET`)
+
+**Security Features:**
+- Token expiration (8h session, 24h tab access)
+- Rate limiting (100 events/min per socket)
+- Input validation with Zod schemas
+- Audit logging for sensitive operations
+- XSS prevention with DOMPurify
+
+**Authentication Flows:**
+- Staff: JWT verification → venue assignment check → room join
+- Customers: Tab token verification → tab existence check → room join
+
+**Error Handling:**
+- Connection failures with auto-reconnect
+- Expired token detection with session refresh
+- Unauthorized access attempts logged to Sentry
+
+**Test Strategy:** Unit tests, integration tests, load tests documented
+
+**Deployment Checklist:** 15-item production readiness checklist
+
+#### 6. Implementation Readiness Report Updated
+- **Readiness Score:** 92/100 → **96/100**
+- **Status:** READY WITH CONDITIONS → **READY FOR IMPLEMENTATION**
+- **Updates Section:** Comprehensive documentation of all resolutions
+- **Gap Status:** All moderate concerns resolved, minor gaps addressed
+
+**Files Modified:**
+- `docs/sprint-artifacts/epics-and-stories.md` (+700 lines)
+- `docs/implementation-readiness-report-2025-11-26.md` (+150 lines updates)
+
+**Files Created:**
+- `docs/technical-specs/10-redis-resilience-fallback-strategy.md` (600 lines)
+- `docs/technical-specs/11-socketio-authentication-security.md` (400 lines)
+
+**Total Documentation Added:** ~1,500 lines of detailed specifications
+
+**Commit:** `feat: Address implementation readiness gaps with comprehensive specifications`
+
+---
+
 ### Status Update
 
 **Workflow Status:**
-- implementation-readiness: **IN PROGRESS** (completing now)
+- implementation-readiness: ✅ **COMPLETE** (all gaps resolved)
 - Next: sprint-planning (ready to start)
 
-**Current Phase:** Phase 2 → Phase 3 Transition (Ready for Implementation)
+**Current Phase:** Phase 3 Complete → Ready for Phase 4 (Implementation)
 
-**Recommendation:** Proceed to `*sprint-planning` with SM agent (Bob)
+**Readiness Assessment:**
+- All moderate concerns resolved
+- All minor gaps addressed
+- Comprehensive error handling documented
+- Resilience strategies specified
+- Security fully documented
+
+**Recommendation:** Proceed immediately to `*sprint-planning` with SM agent (Bob) or start Sprint 0 implementation
 
 ---
 
