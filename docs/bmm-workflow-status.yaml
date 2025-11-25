@@ -38,7 +38,7 @@ workflow_status:
   create-epics-and-stories: docs/sprint-artifacts/epics-and-stories.md
   test-design: recommended
   validate-architecture: optional
-  implementation-readiness: required
+  implementation-readiness: docs/implementation-readiness-report-2025-11-26.md
   
   # Phase 3: Implementation - Not started
   sprint-planning: required
