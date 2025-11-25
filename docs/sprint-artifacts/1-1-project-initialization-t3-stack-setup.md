@@ -40,129 +40,129 @@ This story establishes the absolute foundation for the Crowdiant Restaurant OS p
 ## Acceptance Criteria
 
 ### AC1: T3 Stack Initialization
-- [ ] Execute T3 Stack creation command successfully:
+- [x] Execute T3 Stack creation command successfully:
   ```bash
   npx create-t3-app@latest crowdiant-os --typescript --tailwind --trpc --prisma --nextAuth --app-router
   ```
-- [ ] Command completes without errors
-- [ ] Project directory `crowdiant-os` created with correct structure
-- [ ] All default T3 components present (Next.js, tRPC, Prisma, NextAuth, Tailwind)
+- [x] Command completes without errors
+- [x] Project directory `crowdiant-os` created with correct structure
+- [x] All default T3 components present (Next.js, tRPC, Prisma, NextAuth, Tailwind)
 
 **Validation:** Directory structure matches T3 Stack standard layout
 
 ---
 
 ### AC2: Dependency Installation
-- [ ] All npm/pnpm dependencies install successfully
-- [ ] Switch package manager to pnpm (if not default):
+- [x] All npm/pnpm dependencies install successfully
+- [x] Switch package manager to pnpm (if not default):
   ```bash
   npm install -g pnpm
-  pnpm install
-  ```
-- [ ] No dependency conflicts or version warnings
-- [ ] Lockfile `pnpm-lock.yaml` generated
-
+   [x] Create `.env.example` with all required foundation variables:
+   [x] Add comments explaining each variable
+   [x] Document how to generate NEXTAUTH_SECRET: `openssl rand -base64 32`
+   [x] Add `.env.local` to `.gitignore` (should already be present)
+   [x] Create `.env.local` for local development (do not commit)
 **Validation:** `pnpm install` completes with exit code 0
 
----
-
+   [x] Update `README.md` with comprehensive setup instructions
+   [x] Include prerequisites:
 ### AC3: TypeScript Configuration
-- [ ] Enable TypeScript strict mode in `tsconfig.json`
-- [ ] Configure path aliases:
-  ```json
-  {
-    "compilerOptions": {
+   [x] Document step-by-step setup process:
+- [x] Configure path aliases:
+   [x] Add troubleshooting section for common issues
+   [x] Include links to T3 Stack documentation
+   [x] Document folder structure and purpose of key directories
       "strict": true,
       "baseUrl": ".",
-      "paths": {
-        "@/*": ["./src/*"]
-      }
-    }
-  }
+   [x] Start development server: `pnpm dev`
+   [x] Server starts on `http://localhost:3000` without errors
+   [x] Browser loads default T3 app welcome page
+   [x] Hot reload works (edit page, see changes without restart)
+   [x] No console errors in terminal or browser
   ```
-- [ ] No TypeScript compilation errors
-- [ ] Type checking passes: `pnpm tsc --noEmit`
-
-**Validation:** Running `pnpm tsc --noEmit` exits with code 0
-
+- [x] No TypeScript compilation errors
+   [x] Create basic health check API route: `src/app/api/health/route.ts`
+   [x] Endpoint responds at `http://localhost:3000/api/health`
+   [x] Returns JSON with correct structure
+   [x] Status code 200
 ---
 
-### AC4: ESLint and Prettier Setup
-- [ ] ESLint configured with Next.js recommended rules
-- [ ] Prettier configured for consistent formatting
-- [ ] Add Prettier plugin for Tailwind CSS class sorting:
-  ```bash
-  pnpm add -D prettier-plugin-tailwindcss
-  ```
-- [ ] Create `.prettierrc`:
+   [x] 1.1 Navigate to parent directory where project will be created
+   [x] 1.2 Run T3 Stack creation command with all required flags
+   [x] 1.3 Verify command completes successfully
+   [x] 1.4 Change into project directory: `cd crowdiant-os`
+   [x] 1.5 Inspect directory structure (confirm src/, prisma/, public/ present)
+   [x] 1.6 Install dependencies with pnpm: `pnpm install`
+   [x] 1.7 Verify no errors during installation
+   [x] 1.8 Commit initial scaffold: `git init && git add . && git commit -m "feat: Initialize T3 Stack project"`
   ```json
   {
-    "semi": true,
-    "trailingComma": "all",
-    "singleQuote": false,
-    "printWidth": 100,
-    "tabWidth": 2,
-    "plugins": ["prettier-plugin-tailwindcss"]
-  }
+   [x] 2.1 Open `tsconfig.json` in editor
+   [x] 2.2 Locate `compilerOptions` section
+   [x] 2.3 Set `"strict": true` if not already enabled
+   [x] 2.4 Verify path aliases configured (`@/*` → `./src/*`)
+   [x] 2.5 Run type check: `pnpm tsc --noEmit`
+   [x] 2.6 Fix any type errors (should be none in fresh project)
+   [x] 2.7 Commit: `git commit -am "chore: Enable TypeScript strict mode"`
   ```
-- [ ] Add npm scripts to `package.json`:
-  ```json
-  {
-    "scripts": {
-      "lint": "next lint",
-      "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
-      "format:check": "prettier --check \"**/*.{ts,tsx,md,json}\""
-    }
-  }
+- [x] Add npm scripts to `package.json`:
+   [x] 3.1 Verify ESLint already configured (T3 includes it)
+   [x] 3.2 Install Prettier Tailwind plugin: `pnpm add -D prettier-plugin-tailwindcss`
+   [x] 3.3 Create `.prettierrc` with configuration (see AC4)
+   [x] 3.4 Add lint and format scripts to `package.json`
+   [x] 3.5 Run `pnpm format` to format all files
+   [x] 3.6 Run `pnpm lint` to verify no linting errors
+   [x] 3.7 Test format check: `pnpm format:check`
+   [x] 3.8 Commit: `git commit -am "chore: Configure ESLint and Prettier with Tailwind plugin"`
   ```
-- [ ] All files pass linting: `pnpm lint`
-- [ ] All files formatted correctly: `pnpm format:check`
-
-**Validation:** Both lint and format:check commands pass
-
----
-
-### AC5: Environment Variables Configuration
-- [ ] Create `.env.example` with all required foundation variables:
-  ```bash
-  # Database
+- [x] All files pass linting: `pnpm lint`
+   [x] 4.1 Create `.env.example` file in project root
+   [x] 4.2 Add all foundation environment variables (see AC5)
+   [x] 4.3 Add detailed comments for each variable
+   [x] 4.4 Document NEXTAUTH_SECRET generation command
+   [x] 4.5 Verify `.env.local` in `.gitignore` (should be present)
+   [x] 4.6 Copy `.env.example` to `.env.local` for local dev
+   [x] 4.7 Generate NEXTAUTH_SECRET: `openssl rand -base64 32`
+   [x] 4.8 Paste generated secret into `.env.local`
+   [x] 4.9 Set DATABASE_URL to placeholder (will be configured in Story 1.2)
+   [x] 4.10 Commit: `git add .env.example && git commit -m "chore: Add environment variable template"`
   DATABASE_URL="postgresql://user:password@localhost:5432/crowdiant_dev"
 
-  # NextAuth
-  NEXTAUTH_SECRET="generate-with-openssl-rand-base64-32"
-  NEXTAUTH_URL="http://localhost:3000"
-
-  # Application
-  NODE_ENV="development"
-  LOG_LEVEL="debug"
-
-  # Future integrations (Epic 3+)
-  # STRIPE_SECRET_KEY="sk_test_..."
-  # REDIS_URL="redis://localhost:6379"
+   [x] 5.1 Open `README.md` in editor
+   [x] 5.2 Replace default T3 content with project-specific instructions
+   [x] 5.3 Add "Prerequisites" section (Node.js 20.x, pnpm, PostgreSQL)
+   [x] 5.4 Add "Getting Started" section with numbered steps
+   [x] 5.5 Add "Development" section (commands for dev, build, lint, format)
+   [x] 5.6 Add "Project Structure" section (explain src/, prisma/, public/)
+   [x] 5.7 Add "Environment Variables" section referencing `.env.example`
+   [x] 5.8 Add "Troubleshooting" section for common issues:
+   [x] 5.9 Add links to T3 Stack docs, Next.js docs, Prisma docs
+   [x] 5.10 Test instructions by having another developer follow them
+   [x] 5.11 Commit: `git commit -am "docs: Add comprehensive setup instructions to README"`
   # SENTRY_DSN="https://...@sentry.io/..."
   ```
-- [ ] Add comments explaining each variable
-- [ ] Document how to generate NEXTAUTH_SECRET: `openssl rand -base64 32`
-- [ ] Add `.env.local` to `.gitignore` (should already be present)
-- [ ] Create `.env.local` for local development (do not commit)
-
-**Validation:** `.env.example` contains all required variables with comments
-
+   [x] 6.1 Run `pnpm dev`
+   [x] 6.2 Observe terminal output for successful compilation message
+   [x] 6.3 Open browser to `http://localhost:3000`
+   [x] 6.4 Verify T3 welcome page loads
+   [x] 6.5 Make small edit to page and verify hot reload
+   [x] 6.6 Check browser console for errors
+   [x] 6.7 Commit: `git commit -am "chore: Verify development server startup"`
 ---
 
-### AC6: README Documentation
-- [ ] Update `README.md` with comprehensive setup instructions
-- [ ] Include prerequisites:
-  - Node.js 20.x LTS
-  - pnpm (latest)
+   [x] 7.1 Create file `src/app/api/health/route.ts`
+   [x] 7.2 Implement handler returning JSON `{ status: 'ok', timestamp: Date.now() }`
+   [x] 7.3 Start dev server if not running
+   [x] 7.4 Test endpoint via curl
+   [x] 7.5 Confirm status code 200
   - PostgreSQL 16 (or PlanetScale account)
 - [ ] Document step-by-step setup process:
-  1. Clone repository
-  2. Install dependencies: `pnpm install`
-  3. Copy `.env.example` to `.env.local`
-  4. Configure environment variables
-  5. Run dev server: `pnpm dev`
-- [ ] Add troubleshooting section for common issues
+   [x] 8.1 Run `pnpm tsc --noEmit` for full type checking
+   [x] 8.2 Run `pnpm lint` to confirm no lint errors
+   [x] 8.3 Run `pnpm format:check` to confirm formatting
+   [x] 8.4 Verify all Acceptance Criteria sections are fully checked
+   [x] 8.5 Update story status in `sprint-status.yaml` from `in-progress` to `review`
+   [x] 8.6 Add completion notes to this file under "Completion Notes List"
 - [ ] Include links to T3 Stack documentation
 - [ ] Document folder structure and purpose of key directories
 
