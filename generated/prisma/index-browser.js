@@ -117,12 +117,42 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   Serializable: "Serializable",
 });
 
-exports.Prisma.PostScalarFieldEnum = {
+exports.Prisma.VenueScalarFieldEnum = {
   id: "id",
   name: "name",
+  slug: "slug",
+  timezone: "timezone",
+  currency: "currency",
+  stripeAccountId: "stripeAccountId",
+  stripeOnboarded: "stripeOnboarded",
+  preAuthAmountCents: "preAuthAmountCents",
+  walkAwayGraceMinutes: "walkAwayGraceMinutes",
   createdAt: "createdAt",
   updatedAt: "updatedAt",
-  createdById: "createdById",
+  deletedAt: "deletedAt",
+};
+
+exports.Prisma.UserScalarFieldEnum = {
+  id: "id",
+  email: "email",
+  name: "name",
+  phone: "phone",
+  emailVerified: "emailVerified",
+  image: "image",
+  passwordHash: "passwordHash",
+  createdAt: "createdAt",
+  updatedAt: "updatedAt",
+  deletedAt: "deletedAt",
+};
+
+exports.Prisma.StaffAssignmentScalarFieldEnum = {
+  id: "id",
+  userId: "userId",
+  venueId: "venueId",
+  role: "role",
+  createdAt: "createdAt",
+  updatedAt: "updatedAt",
+  deletedAt: "deletedAt",
 };
 
 exports.Prisma.AccountScalarFieldEnum = {
@@ -138,7 +168,6 @@ exports.Prisma.AccountScalarFieldEnum = {
   scope: "scope",
   id_token: "id_token",
   session_state: "session_state",
-  refresh_token_expires_in: "refresh_token_expires_in",
 };
 
 exports.Prisma.SessionScalarFieldEnum = {
@@ -146,14 +175,6 @@ exports.Prisma.SessionScalarFieldEnum = {
   sessionToken: "sessionToken",
   userId: "userId",
   expires: "expires",
-};
-
-exports.Prisma.UserScalarFieldEnum = {
-  id: "id",
-  name: "name",
-  email: "email",
-  emailVerified: "emailVerified",
-  image: "image",
 };
 
 exports.Prisma.VerificationTokenScalarFieldEnum = {
@@ -176,12 +197,21 @@ exports.Prisma.NullsOrder = {
   first: "first",
   last: "last",
 };
+exports.StaffRole = exports.$Enums.StaffRole = {
+  OWNER: "OWNER",
+  MANAGER: "MANAGER",
+  SERVER: "SERVER",
+  KITCHEN: "KITCHEN",
+  HOST: "HOST",
+  CASHIER: "CASHIER",
+};
 
 exports.Prisma.ModelName = {
-  Post: "Post",
+  Venue: "Venue",
+  User: "User",
+  StaffAssignment: "StaffAssignment",
   Account: "Account",
   Session: "Session",
-  User: "User",
   VerificationToken: "VerificationToken",
 };
 

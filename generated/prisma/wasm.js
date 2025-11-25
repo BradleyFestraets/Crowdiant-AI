@@ -87,12 +87,42 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   Serializable: "Serializable",
 });
 
-exports.Prisma.PostScalarFieldEnum = {
+exports.Prisma.VenueScalarFieldEnum = {
   id: "id",
   name: "name",
+  slug: "slug",
+  timezone: "timezone",
+  currency: "currency",
+  stripeAccountId: "stripeAccountId",
+  stripeOnboarded: "stripeOnboarded",
+  preAuthAmountCents: "preAuthAmountCents",
+  walkAwayGraceMinutes: "walkAwayGraceMinutes",
   createdAt: "createdAt",
   updatedAt: "updatedAt",
-  createdById: "createdById",
+  deletedAt: "deletedAt",
+};
+
+exports.Prisma.UserScalarFieldEnum = {
+  id: "id",
+  email: "email",
+  name: "name",
+  phone: "phone",
+  emailVerified: "emailVerified",
+  image: "image",
+  passwordHash: "passwordHash",
+  createdAt: "createdAt",
+  updatedAt: "updatedAt",
+  deletedAt: "deletedAt",
+};
+
+exports.Prisma.StaffAssignmentScalarFieldEnum = {
+  id: "id",
+  userId: "userId",
+  venueId: "venueId",
+  role: "role",
+  createdAt: "createdAt",
+  updatedAt: "updatedAt",
+  deletedAt: "deletedAt",
 };
 
 exports.Prisma.AccountScalarFieldEnum = {
@@ -108,7 +138,6 @@ exports.Prisma.AccountScalarFieldEnum = {
   scope: "scope",
   id_token: "id_token",
   session_state: "session_state",
-  refresh_token_expires_in: "refresh_token_expires_in",
 };
 
 exports.Prisma.SessionScalarFieldEnum = {
@@ -116,14 +145,6 @@ exports.Prisma.SessionScalarFieldEnum = {
   sessionToken: "sessionToken",
   userId: "userId",
   expires: "expires",
-};
-
-exports.Prisma.UserScalarFieldEnum = {
-  id: "id",
-  name: "name",
-  email: "email",
-  emailVerified: "emailVerified",
-  image: "image",
 };
 
 exports.Prisma.VerificationTokenScalarFieldEnum = {
@@ -146,12 +167,21 @@ exports.Prisma.NullsOrder = {
   first: "first",
   last: "last",
 };
+exports.StaffRole = exports.$Enums.StaffRole = {
+  OWNER: "OWNER",
+  MANAGER: "MANAGER",
+  SERVER: "SERVER",
+  KITCHEN: "KITCHEN",
+  HOST: "HOST",
+  CASHIER: "CASHIER",
+};
 
 exports.Prisma.ModelName = {
-  Post: "Post",
+  Venue: "Venue",
+  User: "User",
+  StaffAssignment: "StaffAssignment",
   Account: "Account",
   Session: "Session",
-  User: "User",
   VerificationToken: "VerificationToken",
 };
 /**
@@ -183,7 +213,7 @@ const config = {
     isCustomOutput: true,
   },
   relativeEnvPaths: {
-    rootEnvPath: "../../.env",
+    rootEnvPath: null,
     schemaEnvPath: "../../.env",
   },
   relativePath: "../../prisma",
@@ -201,15 +231,15 @@ const config = {
     },
   },
   inlineSchema:
-    '// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\ngenerator client {\n  provider = "prisma-client-js"\n  output   = "../generated/prisma"\n}\n\ndatasource db {\n  provider = "postgresql"\n  // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below\n  // Further reading:\n  // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema\n  // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string\n  url      = env("DATABASE_URL")\n}\n\nmodel Post {\n  id        Int      @id @default(autoincrement())\n  name      String\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  createdBy   User   @relation(fields: [createdById], references: [id])\n  createdById String\n\n  @@index([name])\n}\n\n// Necessary for Next auth\nmodel Account {\n  id                       String  @id @default(cuid())\n  userId                   String\n  type                     String\n  provider                 String\n  providerAccountId        String\n  refresh_token            String? // @db.Text\n  access_token             String? // @db.Text\n  expires_at               Int?\n  token_type               String?\n  scope                    String?\n  id_token                 String? // @db.Text\n  session_state            String?\n  user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)\n  refresh_token_expires_in Int?\n\n  @@unique([provider, providerAccountId])\n}\n\nmodel Session {\n  id           String   @id @default(cuid())\n  sessionToken String   @unique\n  userId       String\n  expires      DateTime\n  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)\n}\n\nmodel User {\n  id            String    @id @default(cuid())\n  name          String?\n  email         String?   @unique\n  emailVerified DateTime?\n  image         String?\n  accounts      Account[]\n  sessions      Session[]\n  posts         Post[]\n}\n\nmodel VerificationToken {\n  identifier String\n  token      String   @unique\n  expires    DateTime\n\n  @@unique([identifier, token])\n}\n',
+    '// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\ngenerator client {\n  provider = "prisma-client-js"\n  output   = "../generated/prisma"\n}\n\ndatasource db {\n  provider = "postgresql"\n  url      = env("DATABASE_URL")\n}\n\n// ============================================================================\n// CORE MODELS - Foundation for Multi-Tenancy\n// ============================================================================\n\nmodel Venue {\n  id       String @id @default(cuid())\n  name     String\n  slug     String @unique // URL-friendly identifier\n  timezone String @default("America/New_York")\n  currency String @default("USD")\n\n  // Stripe Connect fields (populated in Epic 3)\n  stripeAccountId String? @unique\n  stripeOnboarded Boolean @default(false)\n\n  // Express Checkout config (populated in Epic 3)\n  preAuthAmountCents   Int @default(5000) // $50 default\n  walkAwayGraceMinutes Int @default(15)\n\n  // Timestamps\n  createdAt DateTime  @default(now())\n  updatedAt DateTime  @updatedAt\n  deletedAt DateTime? // Soft delete\n\n  // Relations (defined in future epics)\n  staff StaffAssignment[]\n  // menus                Menu[]\n  // tables               Table[]\n  // tabs                 Tab[]\n\n  @@index([slug])\n  @@index([stripeAccountId])\n  @@map("venues")\n}\n\nmodel User {\n  id    String  @id @default(cuid())\n  email String  @unique\n  name  String?\n  phone String? @unique\n\n  // Auth fields (NextAuth integration)\n  emailVerified DateTime?\n  image         String?\n  passwordHash  String? // bcrypt, nullable for magic link auth\n\n  // Timestamps\n  createdAt DateTime  @default(now())\n  updatedAt DateTime  @updatedAt\n  deletedAt DateTime? // Soft delete\n\n  // Relations\n  staffAt  StaffAssignment[] // Venues where user is staff\n  accounts Account[]\n  sessions Session[]\n  // trustScores          TrustScore[] (Epic 7)\n  // tabs                 Tab[] (Epic 3)\n\n  @@index([email])\n  @@index([phone])\n  @@map("users")\n}\n\nmodel StaffAssignment {\n  id      String    @id @default(cuid())\n  userId  String\n  venueId String\n  role    StaffRole\n\n  // Timestamps\n  createdAt DateTime  @default(now())\n  updatedAt DateTime  @updatedAt\n  deletedAt DateTime? // Soft delete (deactivated staff)\n\n  // Relations\n  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)\n  venue Venue @relation(fields: [venueId], references: [id], onDelete: Cascade)\n\n  @@unique([userId, venueId]) // One role per user per venue\n  @@index([userId])\n  @@index([venueId])\n  @@index([role])\n  @@map("staff_assignments")\n}\n\nenum StaffRole {\n  OWNER\n  MANAGER\n  SERVER\n  KITCHEN\n  HOST\n  CASHIER\n}\n\n// ============================================================================\n// NEXTAUTH MODELS (Required for NextAuth.js)\n// ============================================================================\n\nmodel Account {\n  id                String  @id @default(cuid())\n  userId            String\n  type              String\n  provider          String\n  providerAccountId String\n  refresh_token     String? @db.Text\n  access_token      String? @db.Text\n  expires_at        Int?\n  token_type        String?\n  scope             String?\n  id_token          String? @db.Text\n  session_state     String?\n\n  user User @relation(fields: [userId], references: [id], onDelete: Cascade)\n\n  @@unique([provider, providerAccountId])\n  @@map("accounts")\n}\n\nmodel Session {\n  id           String   @id @default(cuid())\n  sessionToken String   @unique\n  userId       String\n  expires      DateTime\n\n  user User @relation(fields: [userId], references: [id], onDelete: Cascade)\n\n  @@map("sessions")\n}\n\nmodel VerificationToken {\n  identifier String\n  token      String   @unique\n  expires    DateTime\n\n  @@unique([identifier, token])\n  @@map("verification_tokens")\n}\n',
   inlineSchemaHash:
-    "dd9a6edd7dcf3768e8fd246695361ce51823871115a517c30ff53e4d5bffa20b",
+    "a555624cf6f365d540213ac0c2e5b15e5504055715abe59a2c3c68657feeca68",
   copyEngine: true,
 };
 config.dirname = "/";
 
 config.runtimeDataModel = JSON.parse(
-  '{"models":{"Post":{"fields":[{"name":"id","kind":"scalar","type":"Int"},{"name":"name","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"},{"name":"createdBy","kind":"object","type":"User","relationName":"PostToUser"},{"name":"createdById","kind":"scalar","type":"String"}],"dbName":null},"Account":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"userId","kind":"scalar","type":"String"},{"name":"type","kind":"scalar","type":"String"},{"name":"provider","kind":"scalar","type":"String"},{"name":"providerAccountId","kind":"scalar","type":"String"},{"name":"refresh_token","kind":"scalar","type":"String"},{"name":"access_token","kind":"scalar","type":"String"},{"name":"expires_at","kind":"scalar","type":"Int"},{"name":"token_type","kind":"scalar","type":"String"},{"name":"scope","kind":"scalar","type":"String"},{"name":"id_token","kind":"scalar","type":"String"},{"name":"session_state","kind":"scalar","type":"String"},{"name":"user","kind":"object","type":"User","relationName":"AccountToUser"},{"name":"refresh_token_expires_in","kind":"scalar","type":"Int"}],"dbName":null},"Session":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"sessionToken","kind":"scalar","type":"String"},{"name":"userId","kind":"scalar","type":"String"},{"name":"expires","kind":"scalar","type":"DateTime"},{"name":"user","kind":"object","type":"User","relationName":"SessionToUser"}],"dbName":null},"User":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"name","kind":"scalar","type":"String"},{"name":"email","kind":"scalar","type":"String"},{"name":"emailVerified","kind":"scalar","type":"DateTime"},{"name":"image","kind":"scalar","type":"String"},{"name":"accounts","kind":"object","type":"Account","relationName":"AccountToUser"},{"name":"sessions","kind":"object","type":"Session","relationName":"SessionToUser"},{"name":"posts","kind":"object","type":"Post","relationName":"PostToUser"}],"dbName":null},"VerificationToken":{"fields":[{"name":"identifier","kind":"scalar","type":"String"},{"name":"token","kind":"scalar","type":"String"},{"name":"expires","kind":"scalar","type":"DateTime"}],"dbName":null}},"enums":{},"types":{}}',
+  '{"models":{"Venue":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"name","kind":"scalar","type":"String"},{"name":"slug","kind":"scalar","type":"String"},{"name":"timezone","kind":"scalar","type":"String"},{"name":"currency","kind":"scalar","type":"String"},{"name":"stripeAccountId","kind":"scalar","type":"String"},{"name":"stripeOnboarded","kind":"scalar","type":"Boolean"},{"name":"preAuthAmountCents","kind":"scalar","type":"Int"},{"name":"walkAwayGraceMinutes","kind":"scalar","type":"Int"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"},{"name":"deletedAt","kind":"scalar","type":"DateTime"},{"name":"staff","kind":"object","type":"StaffAssignment","relationName":"StaffAssignmentToVenue"}],"dbName":"venues"},"User":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"email","kind":"scalar","type":"String"},{"name":"name","kind":"scalar","type":"String"},{"name":"phone","kind":"scalar","type":"String"},{"name":"emailVerified","kind":"scalar","type":"DateTime"},{"name":"image","kind":"scalar","type":"String"},{"name":"passwordHash","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"},{"name":"deletedAt","kind":"scalar","type":"DateTime"},{"name":"staffAt","kind":"object","type":"StaffAssignment","relationName":"StaffAssignmentToUser"},{"name":"accounts","kind":"object","type":"Account","relationName":"AccountToUser"},{"name":"sessions","kind":"object","type":"Session","relationName":"SessionToUser"}],"dbName":"users"},"StaffAssignment":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"userId","kind":"scalar","type":"String"},{"name":"venueId","kind":"scalar","type":"String"},{"name":"role","kind":"enum","type":"StaffRole"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"},{"name":"deletedAt","kind":"scalar","type":"DateTime"},{"name":"user","kind":"object","type":"User","relationName":"StaffAssignmentToUser"},{"name":"venue","kind":"object","type":"Venue","relationName":"StaffAssignmentToVenue"}],"dbName":"staff_assignments"},"Account":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"userId","kind":"scalar","type":"String"},{"name":"type","kind":"scalar","type":"String"},{"name":"provider","kind":"scalar","type":"String"},{"name":"providerAccountId","kind":"scalar","type":"String"},{"name":"refresh_token","kind":"scalar","type":"String"},{"name":"access_token","kind":"scalar","type":"String"},{"name":"expires_at","kind":"scalar","type":"Int"},{"name":"token_type","kind":"scalar","type":"String"},{"name":"scope","kind":"scalar","type":"String"},{"name":"id_token","kind":"scalar","type":"String"},{"name":"session_state","kind":"scalar","type":"String"},{"name":"user","kind":"object","type":"User","relationName":"AccountToUser"}],"dbName":"accounts"},"Session":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"sessionToken","kind":"scalar","type":"String"},{"name":"userId","kind":"scalar","type":"String"},{"name":"expires","kind":"scalar","type":"DateTime"},{"name":"user","kind":"object","type":"User","relationName":"SessionToUser"}],"dbName":"sessions"},"VerificationToken":{"fields":[{"name":"identifier","kind":"scalar","type":"String"},{"name":"token","kind":"scalar","type":"String"},{"name":"expires","kind":"scalar","type":"DateTime"}],"dbName":"verification_tokens"}},"enums":{},"types":{}}',
 );
 defineDmmfProperty(exports.Prisma, config.runtimeDataModel);
 config.engineWasm = {
