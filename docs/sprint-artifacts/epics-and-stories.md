@@ -275,6 +275,164 @@ model StaffAssignment {
 
 ---
 
+### Story E1.6: Observability & Monitoring Setup
+
+**Story ID:** E1.6
+**Type:** Technical Task
+**Priority:** P0
+**Effort:** 5 points
+**Sprint:** Sprint 0
+
+**As a** developer and operations team
+**I want to** establish comprehensive observability and monitoring
+**So that** we can detect, diagnose, and resolve issues quickly
+
+**Acceptance Criteria:**
+- [ ] Set up Sentry for error tracking and performance monitoring
+- [ ] Configure structured logging with winston or pino
+- [ ] Implement application metrics collection (response times, error rates)
+- [ ] Add health check endpoints (`/api/health`, `/api/health/db`, `/api/health/redis`)
+- [ ] Set up uptime monitoring (Vercel monitoring or external service)
+- [ ] Configure log aggregation (Vercel logs or DataDog)
+- [ ] Implement custom error boundaries in React
+- [ ] Add request ID tracking for distributed tracing
+- [ ] Configure alerts for critical errors (payment failures, auth issues)
+- [ ] Set up performance monitoring for key user flows (Express Checkout, POS)
+
+**Key Metrics to Track:**
+- API response times (p50, p95, p99)
+- Error rates by endpoint
+- Database query performance
+- Redis cache hit/miss rates
+- Payment success/failure rates
+- Express Checkout conversion rates
+- Active user sessions
+- Background job success rates
+
+**Monitoring Tools:**
+- **Error Tracking:** Sentry (Next.js + tRPC integration)
+- **Logs:** Winston with JSON formatting
+- **Metrics:** Prometheus + Grafana (optional) or Vercel Analytics
+- **APM:** Sentry Performance or DataDog APM
+- **Uptime:** BetterStack or Vercel monitoring
+
+**Environment Variables:**
+```env
+SENTRY_DSN=
+SENTRY_ORG=
+SENTRY_PROJECT=
+LOG_LEVEL=info
+ENABLE_METRICS=true
+```
+
+**Technical Implementation:**
+```typescript
+// lib/monitoring/sentry.ts
+import * as Sentry from "@sentry/nextjs";
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  environment: process.env.NODE_ENV,
+  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+  integrations: [
+    new Sentry.BrowserTracing(),
+    new Sentry.Replay(),
+  ],
+  beforeSend(event) {
+    // Filter sensitive data (cards, PII)
+    if (event.request?.data) {
+      delete event.request.data.cardNumber;
+      delete event.request.data.cvv;
+    }
+    return event;
+  },
+});
+
+// lib/monitoring/logger.ts
+import winston from 'winston';
+
+export const logger = winston.createLogger({
+  level: process.env.LOG_LEVEL || 'info',
+  format: winston.format.json(),
+  defaultMeta: { service: 'crowdiant-os' },
+  transports: [
+    new winston.transports.Console({
+      format: winston.format.simple(),
+    }),
+  ],
+});
+
+// lib/monitoring/metrics.ts
+export const metrics = {
+  recordApiCall: (endpoint: string, duration: number, status: number) => {
+    // Implementation with Prometheus or custom metrics
+  },
+  recordPaymentAttempt: (success: boolean, amount: number) => {
+    // Track payment success/failure
+  },
+  recordCacheHit: (hit: boolean) => {
+    // Track Redis performance
+  },
+};
+```
+
+**Health Check Endpoints:**
+```typescript
+// app/api/health/route.ts
+export async function GET() {
+  return Response.json({ status: 'ok', timestamp: Date.now() });
+}
+
+// app/api/health/db/route.ts
+export async function GET() {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    return Response.json({ status: 'ok', service: 'database' });
+  } catch (error) {
+    return Response.json({ status: 'error', service: 'database' }, { status: 503 });
+  }
+}
+
+// app/api/health/redis/route.ts
+export async function GET() {
+  try {
+    await redis.ping();
+    return Response.json({ status: 'ok', service: 'redis' });
+  } catch (error) {
+    return Response.json({ status: 'error', service: 'redis' }, { status: 503 });
+  }
+}
+```
+
+**Alert Configuration:**
+```yaml
+# Sentry Alert Rules
+alerts:
+  - name: "Payment Failure Spike"
+    condition: "error_rate > 5% for payment endpoints"
+    notification: "slack #payments-alerts"
+  
+  - name: "Database Connection Issues"
+    condition: "error contains 'ECONNREFUSED' or 'ETIMEDOUT'"
+    notification: "pagerduty critical"
+  
+  - name: "High Response Time"
+    condition: "p95 > 2000ms for 5 minutes"
+    notification: "slack #performance"
+```
+
+**Definition of Done:**
+- Sentry captures errors and performance data
+- Health check endpoints return accurate status
+- Critical errors trigger alerts
+- Logs are structured and searchable
+- Metrics dashboard shows key performance indicators
+- Error boundaries prevent app crashes
+- Payment failures are tracked separately
+- Documentation includes runbook for common issues
+
+---
+
 ## EPIC 2: User & Venue Management
 
 **Epic ID:** E2
@@ -707,23 +865,172 @@ FR10-FR22
 - [ ] Set up webhook endpoint for Stripe events
 - [ ] Test pre-authorization (capture_method: 'manual')
 - [ ] Test authorization capture and release
+- [ ] Handle all edge cases and error scenarios (see below)
 
 **API Endpoints:**
 - `venue.connectStripe` (mutation)
+- `venue.retryStripeOnboarding` (mutation)
+- `venue.disconnectStripe` (mutation - admin only)
 - `payment.createPreAuth` (mutation)
 - `payment.capturePreAuth` (mutation)
+- `payment.releasePreAuth` (mutation)
 - `/api/webhooks/stripe` (POST)
 
 **Technical Notes:**
 - Use Stripe Connect Express accounts
 - Reference Architecture: "Integration Points > Payment: Stripe Connect"
 - Store webhook signature validation
+- Implement idempotency keys for all mutations
+
+**Edge Cases & Error Handling:**
+
+**1. Onboarding Flow Edge Cases:**
+- [ ] **Incomplete Onboarding:** User starts but doesn't complete Stripe Connect
+  - Store `stripeAccountId` immediately with `stripeOnboarded: false`
+  - Show "Complete Onboarding" CTA in venue dashboard
+  - Block Express Checkout until `stripeOnboarded: true`
+  - Auto-check onboarding status via webhook (`account.updated`)
+  
+- [ ] **Abandoned Onboarding:** User doesn't return after redirect
+  - Send email reminder after 24 hours with onboarding link
+  - Expire onboarding link after 7 days
+  - Allow venue owner to restart onboarding
+  
+- [ ] **Failed Verification:** Stripe rejects business information
+  - Receive webhook `account.updated` with `requirements.errors`
+  - Display specific error to venue owner (e.g., "Invalid tax ID")
+  - Provide "Update Information" button linking to Stripe dashboard
+  - Disable Express Checkout until resolved
+  
+- [ ] **Multiple Onboarding Attempts:** User tries to reconnect existing account
+  - Check if `stripeAccountId` already exists
+  - If yes, redirect to "Update Account" flow instead of creating new
+  - Prevent duplicate account creation
+
+**2. Payment Authorization Edge Cases:**
+- [ ] **Insufficient Funds:** Card declines during pre-auth
+  - Return clear error: "Card declined - insufficient funds"
+  - Suggest alternative payment method
+  - Log failed attempt for fraud detection
+  
+- [ ] **Card Expiration:** Card expires before capture
+  - Detect expiration in webhook `payment_intent.requires_payment_method`
+  - Notify venue staff immediately
+  - Provide "Update Payment Method" flow for customer
+  - Auto-release pre-auth if not updated within 1 hour
+  
+- [ ] **Network Timeout:** Stripe API times out during pre-auth
+  - Implement retry logic with exponential backoff (3 attempts)
+  - Use idempotency key to prevent duplicate charges
+  - If all retries fail, fall back to manual payment entry
+  - Alert customer via SMS if tab opening fails
+  
+- [ ] **3D Secure Required:** Card requires additional authentication
+  - Handle `payment_intent.requires_action` status
+  - Display 3DS modal to customer via Stripe Elements
+  - Timeout 3DS flow after 5 minutes
+  - If timeout, notify staff to use alternative payment
+
+**3. Capture & Settlement Edge Cases:**
+- [ ] **Pre-Auth Expired:** Capture attempted after 7 days
+  - Stripe pre-auths expire after 7 days
+  - Detect `payment_intent.canceled` webhook
+  - Generate new payment intent for outstanding balance
+  - Notify venue owner of expired pre-auth
+  - Update tab status to `PAYMENT_REQUIRED`
+  
+- [ ] **Capture Amount Exceeds Pre-Auth:** Final bill > pre-auth amount
+  - Already handled in Story E3.11 (Pre-Auth Excess Handling)
+  - Create additional payment intent for difference
+  - Requires customer action to authorize additional charge
+  
+- [ ] **Partial Capture Failure:** Capture succeeds but amount incorrect
+  - Implement reconciliation job to compare captured vs. expected
+  - Alert finance team if discrepancy > $5
+  - Log to audit trail for investigation
+  
+- [ ] **Dispute/Chargeback:** Customer disputes charge after capture
+  - Receive webhook `charge.dispute.created`
+  - Mark tab with `DISPUTED` flag
+  - Notify venue owner immediately
+  - Provide dispute evidence upload interface
+  - Auto-respond with tab details, itemized receipt, timestamps
+
+**4. Account Status Edge Cases:**
+- [ ] **Account Disabled by Stripe:** Regulatory or compliance issue
+  - Receive webhook `account.updated` with `charges_enabled: false`
+  - Disable Express Checkout immediately
+  - Display banner: "Payment processing unavailable"
+  - Notify venue owner to contact Stripe support
+  - Allow manual payment entry as fallback
+  
+- [ ] **Payout Failure:** Bank account issue prevents payout
+  - Receive webhook `payout.failed`
+  - Notify venue owner: "Update bank account"
+  - Payments still process normally (Stripe holds funds)
+  - Display payout balance in dashboard
+  
+- [ ] **Negative Balance:** Refunds exceed revenue
+  - Monitor `account.balance` in webhooks
+  - Alert venue owner if balance < -$500
+  - Stripe auto-debits linked bank account
+  - Provide cash flow warning in dashboard
+
+**5. Network & Infrastructure Edge Cases:**
+- [ ] **Webhook Delivery Failure:** Vercel or server down during webhook
+  - Stripe retries webhooks for 72 hours
+  - Implement webhook replay endpoint for manual retry
+  - Store unprocessed webhooks in dead letter queue (DLQ)
+  - Alert on-call engineer if 10+ webhooks unprocessed
+  
+- [ ] **Race Condition:** Multiple captures for same payment intent
+  - Use idempotency keys (payment_intent.id + operation type)
+  - Stripe prevents duplicate captures automatically
+  - Log warning if duplicate attempt detected
+  
+- [ ] **Database Failure During Webhook:** Webhook received but DB down
+  - Return 500 to Stripe (triggers automatic retry)
+  - Implement retry with exponential backoff
+  - After 3 failures, move to DLQ for manual processing
+  - Alert on-call if critical webhook (capture, dispute) fails
+
+**Error Response Schema:**
+```typescript
+type StripeError = {
+  code: 'ONBOARDING_INCOMPLETE' | 'ACCOUNT_DISABLED' | 'CARD_DECLINED' | 
+        'INSUFFICIENT_FUNDS' | 'EXPIRED_CARD' | 'CAPTURE_FAILED' | 
+        'PRE_AUTH_EXPIRED' | 'WEBHOOK_FAILED' | 'NETWORK_TIMEOUT';
+  message: string;
+  userMessage: string; // Customer-friendly message
+  action: 'RETRY' | 'CONTACT_SUPPORT' | 'UPDATE_PAYMENT' | 'FALLBACK_MANUAL';
+  metadata?: Record<string, any>;
+};
+```
+
+**Fallback Strategy:**
+If Stripe is completely unavailable (outage):
+- Display banner: "Online payments temporarily unavailable"
+- Enable "Manual Payment Entry" mode
+- Record payment details locally (amount, method, last4)
+- Sync to Stripe when service restored
+- Reconcile transactions daily via Stripe Balance API
+
+**Monitoring & Alerts:**
+- Track payment success rate (target: >98%)
+- Alert if success rate drops below 95% for 10 minutes
+- Monitor webhook processing latency (target: <5 seconds)
+- Track onboarding completion rate (target: >80%)
+- Alert on any disputed charges immediately
 
 **Definition of Done:**
 - Venue can complete Stripe onboarding
 - Pre-auth can be created and captured
 - Webhooks receive and process events
 - Test mode works end-to-end
+- All edge cases have test coverage
+- Error handling provides clear user feedback
+- Monitoring tracks payment success rate
+- Fallback to manual payment works
 
 ---
 
@@ -884,12 +1191,13 @@ FR10-FR22
 - [ ] Display final total with tip
 - [ ] Confirm close action
 - [ ] Capture pre-authorization with final amount
-- [ ] Handle capture errors gracefully
+- [ ] Handle capture errors gracefully (see Error Scenarios below)
 - [ ] Mark tab as CLOSED in database
 - [ ] Generate digital receipt
 - [ ] Send receipt via SMS and/or email
 - [ ] Display "Thank you" confirmation
 - [ ] Release excess pre-authorization
+- [ ] Implement idempotent close operation (prevent double-closing)
 
 **API Endpoints:**
 - `tab.customerClose` (public mutation)
@@ -899,6 +1207,7 @@ FR10-FR22
 - TipSelector (%, dollar amount, custom)
 - CloseTabConfirmation
 - ReceiptConfirmation
+- ErrorRecoveryModal
 
 **Payment Flow:**
 1. Calculate final amount (subtotal + tax + tip)
@@ -907,12 +1216,221 @@ FR10-FR22
 4. If capture fails → display error, keep tab open
 5. Release remaining pre-auth amount
 
+**Error Scenarios & Handling:**
+
+**1. Capture Failures:**
+- [ ] **Insufficient Funds:** Card has insufficient funds for final amount
+  - Display: "Payment declined - insufficient funds available"
+  - Offer: "Try a different payment method" button
+  - Action: Keep tab open, notify server via Socket.io
+  - Fallback: Server can accept alternative payment
+  
+- [ ] **Card Expired:** Card expired between pre-auth and capture
+  - Display: "Your card has expired. Please update payment method"
+  - Offer: "Update Payment" flow to collect new card
+  - Action: Create new payment intent, keep tab open
+  - Notify server via Socket.io of payment issue
+  
+- [ ] **Pre-Auth Expired:** More than 7 days since pre-auth
+  - Display: "Session expired. Please contact your server to complete payment"
+  - Action: Mark tab as `PAYMENT_REQUIRED`
+  - Notify server immediately (push notification + Socket.io)
+  - Server handles payment manually
+  
+- [ ] **Network Timeout:** Stripe API times out during capture
+  - Display: "Processing payment... please wait"
+  - Implement retry with exponential backoff (3 attempts)
+  - If all retries fail: "Payment processing delayed. You're safe to leave - we'll email your receipt"
+  - Use idempotency key to prevent double-capture
+  - Background job verifies payment status and sends receipt
+
+**2. Tip Calculation Edge Cases:**
+- [ ] **Tip Exceeds Pre-Auth:** (Total + Tip) > Pre-Auth Amount
+  - Already handled in Story E3.11 (Pre-Auth Excess Handling)
+  - Request additional authorization for excess amount
+  - Display: "Additional authorization needed for tip amount"
+  - If customer declines: Suggest lower tip or no tip
+  
+- [ ] **Custom Tip Invalid:** Customer enters negative or absurd amount
+  - Validate: Tip must be >= $0 and <= 5x bill amount
+  - Display clear error: "Please enter a valid tip amount"
+  - Suggest percentage-based tip options
+
+**3. Receipt Delivery Failures:**
+- [ ] **SMS Delivery Failed:** Twilio fails to send SMS receipt
+  - Still close tab successfully (receipt is not blocking)
+  - Retry SMS send in background (3 attempts)
+  - If all fail: Email receipt as fallback
+  - If both fail: Store receipt in database, customer can re-request
+  
+- [ ] **Email Delivery Failed:** Resend fails to send email receipt
+  - Same fallback as SMS
+  - Log failure to Sentry for monitoring
+  - Display: "Receipt will be available in your email shortly"
+
+**4. Concurrent Operations:**
+- [ ] **Server Closes Tab Simultaneously:** Server and customer close at same time
+  - Use database transaction with row locking
+  - First close wins, second returns "Tab already closed"
+  - Display: "Your server has already closed this tab"
+  - Show final receipt regardless of who closed
+  
+- [ ] **Double-Click Prevention:** Customer clicks "Close Tab" multiple times
+  - Disable button immediately on first click
+  - Show loading spinner: "Processing payment..."
+  - Use idempotency key in API (tab.id + "close" + timestamp)
+  - Backend rejects duplicate close attempts
+
+**5. Walk-Away Detection Conflicts:**
+- [ ] **Customer Closes During Walk-Away Grace Period:**
+  - Cancel walk-away timer if active
+  - Process customer close normally
+  - Prevent auto-close job from running
+  - Update tab status: WALK_AWAY → CLOSING → CLOSED
+
+**6. Database/System Failures:**
+- [ ] **Database Unavailable:** Postgres down during close
+  - Payment already captured (financial consistency priority)
+  - Return 500 error to client: "Payment successful but receipt delayed"
+  - Background job retries database update when DB restored
+  - Customer can safely leave (payment captured)
+  - Send receipt once database update completes
+  
+- [ ] **Redis Unavailable:** Cache unavailable during close
+  - Skip cache updates (non-critical)
+  - Proceed with database transaction
+  - See Redis Resilience spec for full fallback strategy
+
+**Error Response Schema:**
+```typescript
+type CloseTabError = {
+  code: 'CAPTURE_FAILED' | 'CARD_DECLINED' | 'INSUFFICIENT_FUNDS' | 
+        'CARD_EXPIRED' | 'PRE_AUTH_EXPIRED' | 'NETWORK_TIMEOUT' |
+        'TAB_ALREADY_CLOSED' | 'INVALID_TIP' | 'TIP_EXCEEDS_PREAUTH' |
+        'PAYMENT_REQUIRED' | 'SYSTEM_ERROR';
+  message: string;
+  userMessage: string; // Display to customer
+  action: 'RETRY' | 'UPDATE_PAYMENT' | 'CONTACT_SERVER' | 'LEAVE_SAFELY';
+  retryable: boolean;
+  metadata?: {
+    finalAmount?: number;
+    tipAmount?: number;
+    preAuthAmount?: number;
+    excessAmount?: number;
+  };
+};
+```
+
+**Recovery Flows:**
+
+```typescript
+// lib/tab/close-tab-recovery.ts
+
+export async function handleCloseTabError(
+  error: CloseTabError,
+  tabId: string
+): Promise<RecoveryAction> {
+  
+  switch (error.code) {
+    case 'CAPTURE_FAILED':
+    case 'CARD_DECLINED':
+      // Allow retry with same card or offer alternative payment
+      return {
+        allowRetry: true,
+        showAlternativePayment: true,
+        notifyServer: true,
+        customerCanLeave: false,
+      };
+    
+    case 'PRE_AUTH_EXPIRED':
+      // Cannot recover - server must handle
+      await notifyServerPaymentRequired(tabId);
+      return {
+        allowRetry: false,
+        showAlternativePayment: false,
+        notifyServer: true,
+        customerCanLeave: true, // Trust system handles collection
+        displayMessage: 'Please see your server to complete payment',
+      };
+    
+    case 'NETWORK_TIMEOUT':
+      // Verify payment status in background
+      await queuePaymentStatusCheck(tabId);
+      return {
+        allowRetry: true,
+        maxRetries: 3,
+        customerCanLeave: true, // Payment may have succeeded
+        displayMessage: 'Payment processing. Receipt will be emailed.',
+      };
+    
+    case 'TAB_ALREADY_CLOSED':
+      // Show receipt, no action needed
+      return {
+        allowRetry: false,
+        showReceipt: true,
+        customerCanLeave: true,
+      };
+    
+    default:
+      // System error - fail gracefully
+      logger.error('Unexpected close tab error', { error, tabId });
+      return {
+        allowRetry: true,
+        notifyServer: true,
+        customerCanLeave: false,
+        displayMessage: 'An error occurred. Please contact your server.',
+      };
+  }
+}
+```
+
+**User Experience During Errors:**
+
+```typescript
+// Customer-facing error messages
+const ERROR_MESSAGES = {
+  CAPTURE_FAILED: {
+    title: 'Payment Declined',
+    message: 'We couldn\'t process your payment. Please try again or use a different payment method.',
+    action: 'Try Again',
+  },
+  INSUFFICIENT_FUNDS: {
+    title: 'Insufficient Funds',
+    message: 'Your card doesn\'t have enough funds for this purchase. Please use a different payment method.',
+    action: 'Change Payment Method',
+  },
+  PRE_AUTH_EXPIRED: {
+    title: 'Session Expired',
+    message: 'Your payment session has expired. Please see your server to complete payment.',
+    action: 'Notify Server',
+  },
+  NETWORK_TIMEOUT: {
+    title: 'Processing Payment',
+    message: 'Your payment is being processed. You\'re safe to leave - we\'ll email your receipt.',
+    action: 'Okay',
+  },
+};
+```
+
+**Monitoring & Alerts:**
+- Track close tab success rate (target: >98%)
+- Alert if success rate < 95% for 10 minutes
+- Monitor average close time (target: <3 seconds)
+- Track error types and frequency
+- Alert on spike in CAPTURE_FAILED errors (possible Stripe issue)
+
 **Definition of Done:**
 - Customer can close tab from phone
-- Tip selection works
+- Tip selection works with validation
 - Payment captures correctly
-- Receipt generated and sent
+- Receipt generated and sent (with retry logic)
 - Excess pre-auth released
+- All error scenarios have UI flows
+- Idempotent operations prevent double-charging
+- Concurrent close operations handled gracefully
+- Customer never stuck unable to leave
+- Server notified of payment issues
+- Recovery flows tested for all error types
 
 ---
 
