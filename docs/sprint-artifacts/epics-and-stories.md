@@ -5090,3 +5090,110 @@ _For: Bradley - Crowdiant Restaurant OS_
 
 This completes Epics 5-8 (30 additional stories). Would you like me to continue with the final 6 epics (E9-E14)?
 
+---
+
+### Epic: Walk-Away Recovery & Auto-Close (Enhancement)
+
+**Epic Goal:** Eliminate unpaid walk-away losses (target: $0) by reliably detecting probable walk-aways, warning the guest, recovering payment automatically, and capturing trust impact + metrics.
+
+**Related FRs:** FR17 (auto-close on walk-away), FR18 (pre-close SMS warning), FR83 (walk-away recovery metrics). Builds on Express Checkout epic; extends detection sophistication and operational tooling.
+
+**Scope In:** Detection worker, configurable thresholds, SMS warning & WAIT reply handling, auto-close job, trust event logging, metrics & admin overrides.
+**Scope Out:** Advanced machine learning prediction (future), cross-venue behavioral correlation, POS hardware integration.
+
+**KPIs:**
+- Walk-away unpaid tabs per week = 0
+- Warning SMS response rate ≥ 30%
+- False positive rate (tabs flagged but guest active) < 5%
+- Average auto-close latency (grace period adherence) ±1 minute
+
+**Risks & Mitigations:**
+- False positives → multi-signal strategy + WAIT reply cancel path
+- Payment capture failures → idempotent capture & retry queue
+- SMS deliverability issues → fallback email + in-app notification
+- Customer dissatisfaction → clear messaging with immediate reversal path via staff
+
+---
+
+#### Story W1: Walk-Away Detection Foundations
+
+**As a** system operator
+**I want to** automatically detect likely walk-away tabs
+**So that** the platform can intervene before revenue is lost.
+
+**Dependencies:** Existing Tab schema, TabEvent (CHECK_REQUESTED), venue config field `walkAwayGraceMinutes`.
+
+**Acceptance Criteria:**
+1. Worker runs every 5 minutes (cron / scheduler) and logs start + completion.
+2. Only evaluates OPEN tabs older than configurable minimum age (default 30m).
+3. Signals collected: lastActivityMinutes (item add or tab open), averageVisitDuration (30-day moving average), checkRequested flag, tableCleared flag.
+4. Threshold parameters (grace, cleared minutes, check-requested minutes, avgDurationFactor) load from venue config with sensible defaults.
+5. Detection triggers when any strategy condition met; status transitions OPEN → WALK_AWAY atomically (single update, no race conditions).
+6. WALK_AWAY transition enqueues auto-close job with correct delay (configurable, default 15m) and unique jobId to allow cancellation.
+7. Metrics counters increment: `walkaway_detected_total` and gauge for current WALK_AWAY tabs.
+8. Socket event `walkaway.detected` sent to manager channel with tab id & reason code.
+9. Average visit duration calculation excludes durations > 4h and tabs without closedAt.
+10. Unit tests cover: inactivity threshold, table cleared path, check requested path, duration exceed path.
+11. Env/config validation fails fast if queue or SMS provider not configured (clear error log).
+12. Idempotency: re-running worker while status already WALK_AWAY does not duplicate job scheduling.
+
+**API / Internal Interfaces:**
+- (Internal) `WalkAwayDetector.checkOpenTabs()`
+- (Optional admin) `admin.forceWalkAwayCheck` mutation triggers immediate run.
+
+**Events Emitted:**
+- `walkaway.detected`
+- `walkaway.autoclose.scheduled`
+
+**Definition of Done:** All acceptance criteria satisfied; test suite green; documentation of config keys added; metrics visible in dashboard.
+
+---
+
+#### Story W2: Auto-Close & Recovery Flow
+
+**As a** system
+**I want to** finalize payment safely if guest does not return after warning
+**So that** venue revenue is preserved and trust signals recorded.
+
+**Dependencies:** Story W1 complete; Stripe payment intent in tab; SMS sending capability.
+
+**Acceptance Criteria:**
+1. Warning SMS sent immediately upon WALK_AWAY detection if phone present; template includes amount, grace period, cancel keyword (WAIT) and secure link.
+2. Receiving WAIT reply (simulated via webhook) cancels auto-close job and reverts status WALK_AWAY → OPEN (or PENDING if staff review step chosen) within <10s.
+3. Auto-close job only captures payment if tab still in WALK_AWAY; if status changed, job exits gracefully (logs skip event).
+4. Final charge amount excludes tip (tipCents set to 0) and updates status to AUTO_CLOSED with closedAt timestamp.
+5. Trust event logged: WALK_AWAY_RECOVERED with -5 points (configurable). If WAIT reply received and guest returns, apply neutral or light penalty (configurable) or none.
+6. Receipt generated and sent (SMS/email) with clear note “Auto-Closed after absence”.
+7. Manager notification (socket + optional email) on both detection and completion.
+8. Metrics recorded: `walkaway_autoclosed_total`, `walkaway_wait_cancel_total`, average grace adherence (difference between scheduled and actual close time).
+9. Stripe capture errors retried (max 3) with exponential backoff; permanent failure sets status WALK_AWAY_PAYMENT_FAILED and alerts manager.
+10. Idempotent auto-close: repeated job processing for same tab does not duplicate payment or events.
+11. Admin override mutation `tabs.overrideWalkAwayStatus` can set status back to OPEN and cancels queued job.
+12. Cancellation endpoint logs audit entry with actor, reason, timestamp.
+
+**API / Mutations:**
+- `tabs.cancelAutoClose` (tabId) – cancels job if pending.
+- `tabs.overrideWalkAwayStatus` (tabId, status, reason) – admin/manager only.
+- `admin.listWalkAwayTabs` – returns current WALK_AWAY + AUTO_CLOSED (today).
+
+**Events Emitted:**
+- `walkaway.warning.sent`
+- `walkaway.status.updated`
+- `walkaway.autoclosed`
+- `walkaway.payment.failed`
+
+**Security:**
+- Manager/Admin roles required for override & cancel.
+- Rate limit overrides (e.g., max 10/hour) to prevent abuse.
+
+**Telemetry:**
+- Structured log with correlationId for detection→warning→autoclose chain.
+- Trace spans: detect, sendSMS, scheduleJob, capturePayment, sendReceipt.
+
+**Definition of Done:** All acceptance criteria met; manual QA scenario passes (simulate WALK_AWAY, WAIT response, auto-close); monitoring dashboards updated.
+
+---
+
+_Enhancement epic added after original planning summary; counts will be updated in next backlog refresh._
+
+

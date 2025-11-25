@@ -821,3 +821,45 @@ _Session facilitated by BMad Master Agent_
 _Complete project specification generated in one session_
 _Date: November 25, 2025_
 _Ready for Sprint 0 kickoff_
+
+---
+
+## Session Update – November 26, 2025 (Walk-Away Recovery Enhancements)
+
+**Objective:** Extend Express Checkout with a robust Walk-Away Recovery epic to operationalize FR17 (auto-close), FR18 (warning SMS), and FR83 (recovery metrics) beyond the initial algorithm sketch.
+
+**Added Epic:** Walk-Away Recovery & Auto-Close (Enhancement)
+**Goals:** $0 revenue loss from walk-aways; false positive rate < 5%; timely guest warning + graceful cancellation path.
+
+**Stories Added:**
+1. **W1: Walk-Away Detection Foundations** – Worker (5m interval), multi-signal detection (inactivity, table cleared, check requested, duration exceed), status transition OPEN→WALK_AWAY, auto-close job scheduling, metrics & socket events.
+2. **W2: Auto-Close & Recovery Flow** – Warning SMS template + WAIT reply cancellation, idempotent auto-close, Stripe capture, trust event logging, receipt & manager notifications, error retry + failure status.
+
+**Key Design Decisions:**
+- Configurable thresholds per venue (`walkAwayGraceMinutes`, cleared threshold, check-requested threshold, avg duration factor).
+- Idempotent job scheduling using deterministic jobId to prevent duplicate capture.
+- Trust impact separated into distinct event types (WALK_AWAY_RECOVERED vs WAIT_CANCELLED).
+- Structured telemetry chain (detect → warn → schedule → auto-close) with correlationId for observability.
+
+**Metrics Introduced:**
+- `walkaway_detected_total`
+- `walkaway_autoclosed_total`
+- `walkaway_wait_cancel_total`
+- Grace adherence (scheduled vs actual auto-close delta)
+
+**Risk Mitigations:**
+- False positives reduced via multi-signal rule set.
+- Payment failure pathway sets status `WALK_AWAY_PAYMENT_FAILED` and alerts manager for manual resolution.
+- Override & cancellation endpoints gated by Manager/Admin roles + audit log.
+
+**Next Implementation Options:**
+1. Code scaffolding for W1 (detector worker + config + metrics)
+2. DB migration for venue walk-away config fields
+3. Test plan creation (fixture tabs + edge cases)
+4. W2 SMS + auto-close Stripe capture flow
+
+**Recommended Immediate Next Step:** Implement W1 foundations to start generating real operational data; follow with migration + W2 flow.
+
+**Commit Summary:** Adds enhancement epic and stories W1–W2 to `epics-and-stories.md`; updates transcript with new planning and metrics targets.
+
+---
