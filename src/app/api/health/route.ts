@@ -18,7 +18,7 @@ export async function GET() {
     // Check database connectivity
     await db.$queryRaw`SELECT 1`;
     checks.checks.database = "healthy";
-  } catch (error) {
+  } catch {
     checks.checks.database = "unhealthy";
     checks.status = "unhealthy";
   }

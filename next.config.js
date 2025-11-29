@@ -6,7 +6,8 @@ import "./src/env.js";
 
 /** @type {import("next").NextConfig} */
 const config = {
-  output: 'standalone', // For Docker deployments
+  // Standalone output for Docker - comment out for Vercel deployment
+  // output: 'standalone',
 };
 
 export default config;
