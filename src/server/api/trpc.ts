@@ -13,6 +13,7 @@ import { ZodError } from "zod";
 
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
+import { type StaffRole } from "../../../generated/prisma";
 
 /**
  * 1. CONTEXT
@@ -112,13 +113,13 @@ export const publicProcedure = t.procedure.use(timingMiddleware);
 
 /**
  * Authentication Middleware
- * 
+ *
  * Ensures the user is authenticated (session exists).
  * Throws UNAUTHORIZED if no valid session is found.
  */
 const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
   if (!ctx.session?.user) {
-    throw new TRPCError({ 
+    throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "You must be logged in to access this resource",
     });
@@ -133,12 +134,20 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
 
 /**
  * Venue Access Middleware
- * 
+ *
  * Ensures the authenticated user has access to the specified venue.
  * Requires `venueId` in the procedure input.
  * Throws FORBIDDEN if user does not have an active StaffAssignment for the venue.
  */
 const enforceVenueAccess = t.middleware(async ({ ctx, next, getRawInput }) => {
+  // Ensure user is authenticated
+  if (!ctx.session?.user) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You must be authenticated to access this resource",
+    });
+  }
+
   const rawInput = await getRawInput();
   const venueId = (rawInput as { venueId?: string }).venueId;
 
@@ -176,14 +185,22 @@ const enforceVenueAccess = t.middleware(async ({ ctx, next, getRawInput }) => {
 
 /**
  * Role-Based Authorization Middleware Factory
- * 
+ *
  * Ensures the authenticated user has the specified role for the venue.
  * Skeleton implementation - will be used in Epic 2+ for granular permissions.
- * 
- * @param requiredRole - The role required (e.g., "owner", "manager", "staff")
+ *
+ * @param requiredRole - The role required (e.g., OWNER, MANAGER, SERVER)
  */
-const enforceRole = (requiredRole: string) =>
+const enforceRole = (requiredRole: StaffRole) =>
   t.middleware(async ({ ctx, next, getRawInput }) => {
+    // Ensure user is authenticated (session exists)
+    if (!ctx.session?.user) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "You must be authenticated to access this resource",
+      });
+    }
+
     const rawInput = await getRawInput();
     const venueId = (rawInput as { venueId?: string }).venueId;
 
@@ -233,7 +250,7 @@ export const protectedProcedure = t.procedure
 
 /**
  * Venue-Protected Procedure
- * 
+ *
  * Requires authentication AND venue access.
  * Use this for endpoints that operate on a specific venue.
  * Input must include `venueId: string`.
@@ -244,14 +261,14 @@ export const venueProtectedProcedure = t.procedure
   .use(enforceVenueAccess);
 
 /**
- * Role-Protected Procedure Factory
- * 
+ * Role-Protected Procedure
+ *
  * Requires authentication AND specific role for the venue.
  * Skeleton implementation for Epic 2+.
- * 
- * Example: `roleProtectedProcedure("owner").query(...)`
+ *
+ * Example: `roleProtectedProcedure(StaffRole.OWNER).query(...)`
  */
-export const roleProtectedProcedure = (role: string) =>
+export const roleProtectedProcedure = (role: StaffRole) =>
   t.procedure
     .use(timingMiddleware)
     .use(enforceUserIsAuthed)

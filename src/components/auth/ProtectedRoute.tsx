@@ -11,12 +11,12 @@ interface ProtectedRouteProps {
 
 /**
  * ProtectedRoute Component
- * 
+ *
  * Wraps pages/components that require authentication.
  * - Shows loading state while checking session
  * - Redirects to /login if unauthenticated
  * - Renders children if authenticated
- * 
+ *
  * @example
  * <ProtectedRoute>
  *   <DashboardPage />
@@ -40,7 +40,7 @@ export function ProtectedRoute({
     return (
       loadingComponent ?? (
         <div className="flex min-h-screen items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <div className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
         </div>
       )
     );
