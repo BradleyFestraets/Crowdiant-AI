@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<context>
+  <epic id="epic-1" name="Foundation & Platform Setup" sprint="0" status="contexted" />
+  <story id="1-4-shared-ui-component-library-setup" status="ready-for-dev">
+    <objective>Establish a shared UI component library with accessible, themeable components.</objective>
+    <dependencies>
+      <dependency>1-1-project-initialization-t3-stack-setup</dependency>
+      <dependency>1-2-database-architecture-multi-tenant-schema</dependency>
+      <dependency>1-3-authentication-authorization-framework</dependency>
+    </dependencies>
+    <tech>
+      <framework>Next.js (App Router)</framework>
+      <stack>T3</stack>
+      <styling>Tailwind CSS</styling>
+      <primitives>Radix UI</primitives>
+      <patterns>shadcn-inspired component patterns</patterns>
+    </tech>
+    <scope>
+      <item>Set up core components: Button, Input, Select, Dialog, Toast, Tabs, Tooltip, Table, Skeleton</item>
+      <item>Implement CSS variable theming (light/dark) integrated with Tailwind</item>
+      <item>Add example pages for component demos</item>
+      <item>Document usage and contribution guidelines</item>
+    </scope>
+    <acceptance>
+      <criterion>Components render in app with Tailwind</criterion>
+      <criterion>Accessible interactions and ARIA roles/practices</criterion>
+      <criterion>Theme variables drive color modes</criterion>
+      <criterion>Example routes for at least six components</criterion>
+    </acceptance>
+  </story>
+</context>

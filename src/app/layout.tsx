@@ -16,13 +16,46 @@ const geist = Geist({
   variable: "--font-geist-sans",
 });
 
+function ThemeToggle() {
+  if (typeof window === "undefined") return null;
+  return (
+    <button
+      onClick={() => {
+        const el = document.documentElement;
+        const next = el.classList.contains("dark") ? "light" : "dark";
+        el.classList.toggle("dark", next === "dark");
+        try {
+          localStorage.setItem("theme", next);
+        } catch {}
+      }}
+      className="fixed bottom-4 left-4 rounded-md border bg-background px-3 py-2 text-sm shadow"
+    >
+      Toggle Theme
+    </button>
+  );
+}
+
+function useInitTheme() {
+  if (typeof window === "undefined") return;
+  try {
+    const stored = localStorage.getItem("theme");
+    if (stored) {
+      document.documentElement.classList.toggle("dark", stored === "dark");
+    }
+  } catch {}
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  useInitTheme();
   return (
     <html lang="en" className={`${geist.variable}`}>
       <body>
-        <TRPCReactProvider>{children}</TRPCReactProvider>
+        <TRPCReactProvider>
+          {children}
+          <ThemeToggle />
+        </TRPCReactProvider>
       </body>
     </html>
   );
