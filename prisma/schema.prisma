@@ -66,6 +66,7 @@ model User {
   staffAt                 StaffAssignment[] // Venues where user is staff
   accounts                Account[]
   sessions                Session[]
+  passwordResetTokens     PasswordResetToken[]
   // trustScores          TrustScore[] (Epic 7)
   // tabs                 Tab[] (Epic 3)
   
@@ -149,3 +150,18 @@ model VerificationToken {
   @@map("verification_tokens")
 }
 
+model PasswordResetToken {
+  id                      String   @id @default(cuid())
+  token                   String   @unique
+  userId                  String
+  expiresAt               DateTime
+  usedAt                  DateTime?
+  
+  createdAt               DateTime @default(now())
+  
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([token])
+  @@index([userId])
+  @@map("password_reset_tokens")
+}

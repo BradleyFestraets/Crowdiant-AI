@@ -247,18 +247,18 @@ model StaffAssignment {
 **So that** we can deploy reliably and frequently
 
 **Acceptance Criteria (Updated - 2025-11-30):**
-- [ ] Set up Vercel project and link GitHub repo (pending external provisioning)
+- [x] Set up Vercel project and link GitHub repo
 - [x] Configure environment variables in Vercel (DATABASE_URL, AUTH_SECRET, SENTRY_DSN, NEXT_PUBLIC_SENTRY_DSN, etc.)
 - [x] Set up PostgreSQL database (Prisma Accelerate connection pooling)
-- [ ] Configure automatic deployments on push to main (pending Vercel linkage)
-- [ ] Set up preview deployments for PRs (pending Vercel linkage)
+- [x] Configure automatic deployments on push to main
+- [x] Set up preview deployments for PRs
 - [x] Add GitHub Actions for linting and type checking (ci.yml present)
 - [x] Configure Prisma migrations for production (initial migration applied)
 - [x] Set up error tracking (Sentry manual integration)
 
 **Implementation Status:**
-- Completed: Environment variables established in Vercel, PostgreSQL + Prisma Accelerate wired, initial migration, Sentry integrated.
-- Pending: Vercel project linkage verification, CI workflows (lint/type), preview deployments, automated deploy trigger, additional hardening.
+- Completed: All deployment pipeline items verified; CI workflow active; preview deploys enabled; Sentry operational.
+- Pending: Uptime monitoring + advanced alerting (scheduled for future epics).
 
 **Adjustments from Original Plan:**
 - Chose PostgreSQL (not PlanetScale/MySQL) aligning with current schema; removed mention of Supabase for clarity.

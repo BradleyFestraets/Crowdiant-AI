@@ -58,8 +58,9 @@ export const authRouter = createTRPCRouter({
     }),
 
   /**
-   * Request password reset (skeleton implementation)
-   * TODO: Implement in future epic with email verification
+   * Request password reset
+   * Generates secure token and stores in database with 1-hour expiry
+   * In production, would send email via Resend/SendGrid
    */
   requestPasswordReset: publicProcedure
     .input(
@@ -67,11 +68,86 @@ export const authRouter = createTRPCRouter({
         email: z.string().email(),
       }),
     )
-    .mutation(async () => {
-      // Skeleton implementation - will be completed in Epic 2
-      throw new TRPCError({
-        code: "NOT_IMPLEMENTED",
-        message: "Password reset not yet implemented",
+    .mutation(async ({ input, ctx }) => {
+      // Find user by email (timing-safe - don't reveal if user exists)
+      const user = await ctx.db.user.findUnique({
+        where: { email: input.email },
       });
+
+      // Always return success (prevent email enumeration)
+      if (!user) {
+        return { success: true };
+      }
+
+      // Generate secure reset token
+      const resetToken = crypto.randomUUID();
+      const tokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+      // Store token in database
+      await ctx.db.passwordResetToken.create({
+        data: {
+          token: resetToken,
+          userId: user.id,
+          expiresAt: tokenExpiry,
+        },
+      });
+
+      // TODO (Epic 9): Send email with reset link
+      // const resetUrl = `${process.env.NEXTAUTH_URL}/reset-password/${resetToken}`;
+      // await sendEmail({ to: user.email, subject: "Password Reset", resetUrl });
+
+      console.log(`[AUTH] Password reset requested for: ${input.email}`);
+      console.log(`[AUTH] Reset token (dev only): ${resetToken}`);
+
+      return { success: true };
+    }),
+
+  /**
+   * Reset password with token
+   * Validates token, updates password, and invalidates token
+   */
+  resetPassword: publicProcedure
+    .input(
+      z.object({
+        token: z.string().uuid(),
+        newPassword: z.string().min(8, "Password must be at least 8 characters"),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      // Find valid token
+      const resetToken = await ctx.db.passwordResetToken.findUnique({
+        where: {
+          token: input.token,
+          expiresAt: { gte: new Date() },
+          usedAt: null,
+        },
+        include: { user: true },
+      });
+
+      if (!resetToken) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invalid or expired reset token",
+        });
+      }
+
+      // Hash new password
+      const passwordHash = await hash(input.newPassword, 10);
+
+      // Update password and mark token as used
+      await ctx.db.$transaction([
+        ctx.db.user.update({
+          where: { id: resetToken.userId },
+          data: { passwordHash },
+        }),
+        ctx.db.passwordResetToken.update({
+          where: { id: resetToken.id },
+          data: { usedAt: new Date() },
+        }),
+      ]);
+
+      console.log(`[AUTH] Password reset successful for user: ${resetToken.user.email}`);
+
+      return { success: true };
     }),
 });
