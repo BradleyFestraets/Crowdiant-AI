@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Input from "@/components/ui/input";
-import { ToastProvider, useToast } from "@/components/ui/toast";
+import { useToast } from "@/components/ui/toast";
 import { api } from "@/trpc/react";
 import Link from "next/link";
 
@@ -56,7 +56,6 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <ToastProvider>
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <div className="w-full max-w-md space-y-6">
         <div className="text-center">
@@ -118,6 +117,5 @@ export default function ResetPasswordPage() {
           </div>
         </div>
       </div>
-    </ToastProvider>
   );
 }

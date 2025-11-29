@@ -35,7 +35,8 @@
 
 3. **Authentication Routers** ✅
    - `auth.register` - User registration
-   - `auth.requestPasswordReset` - Password reset (skeleton)
+   - `auth.requestPasswordReset` - Password reset (implemented)
+   - `auth.resetPassword` - Password reset (implemented)
    - `venue.listAccessible` - List user's venues
    - `venue.getById` - Get venue with access check
 
@@ -43,6 +44,7 @@
    - Login page (`/login`) with email/password form
    - ProtectedRoute wrapper component
    - Error handling and loading states
+   - Forgot Password (`/forgot-password`) and Reset Password (`/reset-password/[token]`)
 
 5. **Security Features** ✅
    - bcrypt password hashing (cost 10)
@@ -160,22 +162,20 @@
 
 ---
 
-## 🔜 Next Steps
+## 🔜 Migration Instructions
 
-### Immediate (Story 1.4)
-- [ ] Set up shadcn/ui component library
-- [ ] Extract common UI components
-- [ ] Create design system tokens
-- [ ] Refactor login page to use components
+Local DB access was restricted during development. To apply the password reset schema in any environment with credentials:
 
-### Future Enhancements (Epic 2+)
-- [ ] E2E tests with Playwright
-- [ ] Rate limiting on auth endpoints
-- [ ] "Remember Me" functionality
-- [ ] Complete password reset flow
-- [ ] Email verification for new users
-- [ ] Magic link authentication
-- [ ] OAuth providers (Google, GitHub)
+```powershell
+npx prisma generate
+npx prisma migrate deploy
+```
+
+Manual SQL migration: `prisma/migrations/20251130_add_password_reset/migration.sql`.
+
+Quick Links:
+- Forgot Password: `/forgot-password`
+- Reset Password: `/reset-password/{token}`
 
 ---
 

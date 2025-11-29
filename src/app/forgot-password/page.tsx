@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import Input from "@/components/ui/input";
-import { ToastProvider, useToast } from "@/components/ui/toast";
+import { useToast } from "@/components/ui/toast";
 import { api } from "@/trpc/react";
 import Link from "next/link";
 
@@ -40,7 +40,6 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <ToastProvider>
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <div className="w-full max-w-md space-y-6">
         <div className="text-center">
@@ -85,6 +84,5 @@ export default function ForgotPasswordPage() {
           </div>
         </div>
       </div>
-    </ToastProvider>
   );
 }
