@@ -14,12 +14,6 @@ export async function register() {
     replaysSessionSampleRate: 0.1,
     enableLogs: true,
     sendDefaultPii: true,
-    integrations: [
-      Sentry.replayIntegration({
-        maskAllText: true,
-        blockAllMedia: true,
-      }),
-    ],
   });
 }
 
