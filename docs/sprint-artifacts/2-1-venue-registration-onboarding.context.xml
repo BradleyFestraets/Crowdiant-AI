@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Story Context for 2-1-venue-registration-onboarding -->
+<!-- Generated: 2025-11-30 -->
+<!-- Status: ready-for-dev -->
+
+<story-context>
+  <metadata>
+    <story_id>E2.1</story_id>
+    <story_key>2-1-venue-registration-onboarding</story_key>
+    <epic_id>E2</epic_id>
+    <title>Venue Registration &amp; Onboarding</title>
+    <status>ready-for-dev</status>
+    <priority>P0</priority>
+    <effort_points>5</effort_points>
+  </metadata>
+
+  <user_story>
+    <as_a>restaurant_owner</as_a>
+    <i_want>create and configure my venue account</i_want>
+    <so_that>I can start using the platform immediately</so_that>
+  </user_story>
+
+  <acceptance_criteria>
+    <ac id="AC1">Venue registration page `/register/venue` exists with required form fields</ac>
+    <ac id="AC2">Slug generated from venue name; uniqueness enforced with numeric suffix on collision</ac>
+    <ac id="AC3">Authenticated creator automatically assigned OWNER role (StaffAssignment)</ac>
+    <ac id="AC4">Venue persisted with name, slug, timezone, currency</ac>
+    <ac id="AC5">Redirect to venue dashboard after successful creation</ac>
+    <ac id="AC6">Success confirmation message displayed post-creation</ac>
+  </acceptance_criteria>
+
+  <story_tasks>
+    <task id="1" title="Create Registration Page" maps_to="AC1, AC5, AC6">
+      <subtask>Create `src/app/register/venue/page.tsx` route</subtask>
+      <subtask>Implement VenueRegistrationForm component</subtask>
+      <subtask>Client-side validation (basic required fields)</subtask>
+      <subtask>Show success confirmation and redirect logic</subtask>
+    </task>
+    <task id="2" title="Add Venue Create Procedure" maps_to="AC2, AC3, AC4">
+      <subtask>Implement `venue.create` mutation (protectedProcedure)</subtask>
+      <subtask>Generate slug & enforce uniqueness</subtask>
+      <subtask>Create venue + owner StaffAssignment atomically</subtask>
+      <subtask>Return venueId & slug</subtask>
+    </task>
+    <task id="3" title="Slug Utility & Validation" maps_to="AC2">
+      <subtask>Create slug generation helper (reuse-able)</subtask>
+      <subtask>Unit tests covering collisions & sanitization</subtask>
+    </task>
+    <task id="4" title="Testing & QA" maps_to="AC2, AC3, AC4">
+      <subtask>Integration test: venue.create success path</subtask>
+      <subtask>Integration test: duplicate names produce suffixed slug</subtask>
+      <subtask>Auth test: unauthenticated call blocked</subtask>
+    </task>
+    <task id="5" title="Documentation & Tracking" maps_to="AC1-AC6">
+      <subtask>Update README section: Venue onboarding flow</subtask>
+      <subtask>Update `sprint-status.yaml` when development starts (in-progress) then on completion (done)</subtask>
+      <subtask>Create completion summary file `STORY-2.1-COMPLETE.md`</subtask>
+    </task>
+  </story_tasks>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/sprint-artifacts/epics-and-stories.md</path>
+        <title>Epics & Stories</title>
+        <section>EPIC 2: Story E2.1</section>
+        <snippet>Acceptance criteria for venue registration & onboarding</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Multi-Tenancy Foundation</section>
+        <snippet>Describes Venue & StaffAssignment relationship enabling owner assignment</snippet>
+      </doc>
+      <doc>
+        <path>prisma/schema.prisma</path>
+        <title>Prisma Schema</title>
+        <section>Venue / StaffAssignment Models</section>
+        <snippet>Models required to persist venue and owner role</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/server/api/routers/venue.ts</path>
+        <kind>router</kind>
+        <symbol>venueRouter.create</symbol>
+        <reason>Implements slug generation & owner assignment</reason>
+      </artifact>
+      <artifact>
+        <path>src/server/api/root.ts</path>
+        <kind>router-root</kind>
+        <symbol>appRouter</symbol>
+        <reason>Registers venue router for API access</reason>
+      </artifact>
+      <artifact>
+        <path>prisma/schema.prisma</path>
+        <kind>schema</kind>
+        <symbol>Venue, StaffAssignment</symbol>
+        <reason>Database structures supporting registration</reason>
+      </artifact>
+    </code>
+  </artifacts>
+
+  <constraints>
+    <constraint type="security">Creation requires authenticated session</constraint>
+    <constraint type="data">Slug uniqueness enforced before commit</constraint>
+    <constraint type="multi-tenant">Owner assignment must succeed or venue creation rolled back</constraint>
+    <constraint type="ux">Redirect must only occur on confirmed success</constraint>
+    <constraint type="code-quality">Use zod for server-side input validation</constraint>
+  </constraints>
+
+  <implementation_notes>
+    <note priority="high">Ensure atomic creation: consider Prisma transaction if future related inserts added.</note>
+    <note priority="medium">Slug generation logic may move to shared util for reuse in Epic 5 (Menu).</note>
+    <note priority="low">Timezones could later shift to a predefined list component.</note>
+  </implementation_notes>
+</story-context>

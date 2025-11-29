@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { StaffRole } from "../../../../generated/prisma";
+import { generateBaseSlug } from "~/lib/slug";
 
 import {
   createTRPCRouter,
@@ -26,15 +27,8 @@ export const venueRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      // Generate slug
-      const baseSlug = input.name
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, "")
-        .replace(/\s+/g, "-")
-        .replace(/-+/g, "-")
-        .substring(0, 48);
-
+      // Generate base slug via utility
+      const baseSlug = generateBaseSlug(input.name);
       let slug = baseSlug || "venue";
       let attempt = 1;
       while (
@@ -53,24 +47,27 @@ export const venueRouter = createTRPCRouter({
         }
       }
 
-      const venue = await ctx.db.venue.create({
-        data: {
-          name: input.name,
-          slug,
-          timezone: input.timezone,
-          currency: input.currency.toUpperCase(),
-        },
+      // Create venue and owner assignment atomically using a transaction
+      const result = await ctx.db.$transaction(async (tx) => {
+        const venue = await tx.venue.create({
+          data: {
+            name: input.name,
+            slug,
+            timezone: input.timezone,
+            currency: input.currency.toUpperCase(),
+          },
+        });
+        await tx.staffAssignment.create({
+          data: {
+            userId: ctx.session.user.id,
+            venueId: venue.id,
+            role: StaffRole.OWNER,
+          },
+        });
+        return venue;
       });
 
-      await ctx.db.staffAssignment.create({
-        data: {
-          userId: ctx.session.user.id,
-          venueId: venue.id,
-          role: StaffRole.OWNER,
-        },
-      });
-
-      return { success: true, venueId: venue.id, slug: venue.slug };
+      return { success: true, venueId: result.id, slug: result.slug };
     }),
   /**
    * List all venues the current user has access to

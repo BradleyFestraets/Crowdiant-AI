@@ -49,7 +49,7 @@ development_status:
 
   # EPIC 2: User & Venue Management (Sprint 1)
   epic-2: contexted
-  2-1-venue-registration-onboarding: drafted
+  2-1-venue-registration-onboarding: review
   2-2-staff-invitation-management: backlog
   2-3-user-authentication-login-logout: backlog
   2-4-password-reset-flow: backlog
@@ -201,12 +201,12 @@ development_status:
 # 
 # Current Status Distribution:
 #   Epics: 12 backlog, 2 contexted
-#   Stories: 95 backlog, 1 drafted, 0 ready-for-dev, 0 in-progress, 0 review, 6 done
+#   Stories: 94 backlog, 0 drafted, 0 ready-for-dev, 0 in-progress, 1 review, 6 done
 #   Retrospectives: 13 optional, 1 completed
 #
 # Next Actions:
-#   1. Confirm Sentry deprecation resolved (instrumentation consolidated) & monitor for new events.
-#   2. Add missing password reset + component docs page (decide build now vs defer) before broadening auth usage.
-#   3. Implement full Venue registration flow (owner user creation, slug uniqueness validation, post-create redirect) – Story 2.1.
-#   4. Introduce initial test suite (slug uniqueness, role guard middleware) to baseline quality for Epic 2.
-#   5. Prepare minimal UX for staff invitation (token model draft) ahead of Story 2.2 drafting.
+#   1. Code review Story 2.1 (Venue Registration) → merge → mark done.
+#   2. Draft Story 2.2 (Staff Invitation) – requires email provider decision (Resend/SMTP).
+#   3. Implement Story 2.3 (Login page) – NextAuth credentials flow + UI components.
+#   4. Add test database seeding/factory utilities for faster test data creation.
+#   5. Consider devcontainer setup for consistent cross-session environment.
