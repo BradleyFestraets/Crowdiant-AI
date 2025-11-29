@@ -111,6 +111,115 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
 export const publicProcedure = t.procedure.use(timingMiddleware);
 
 /**
+ * Authentication Middleware
+ * 
+ * Ensures the user is authenticated (session exists).
+ * Throws UNAUTHORIZED if no valid session is found.
+ */
+const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
+  if (!ctx.session?.user) {
+    throw new TRPCError({ 
+      code: "UNAUTHORIZED",
+      message: "You must be logged in to access this resource",
+    });
+  }
+  return next({
+    ctx: {
+      // infers the `session` as non-nullable
+      session: { ...ctx.session, user: ctx.session.user },
+    },
+  });
+});
+
+/**
+ * Venue Access Middleware
+ * 
+ * Ensures the authenticated user has access to the specified venue.
+ * Requires `venueId` in the procedure input.
+ * Throws FORBIDDEN if user does not have an active StaffAssignment for the venue.
+ */
+const enforceVenueAccess = t.middleware(async ({ ctx, next, getRawInput }) => {
+  const rawInput = await getRawInput();
+  const venueId = (rawInput as { venueId?: string }).venueId;
+
+  if (!venueId) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "venueId is required for venue-protected procedures",
+    });
+  }
+
+  // Query StaffAssignment to verify access
+  const assignment = await ctx.db.staffAssignment.findFirst({
+    where: {
+      userId: ctx.session.user.id,
+      venueId,
+      deletedAt: null, // Multi-tenant soft-delete check
+    },
+  });
+
+  if (!assignment) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "You do not have access to this venue",
+    });
+  }
+
+  return next({
+    ctx: {
+      ...ctx,
+      // Add assignment to context for downstream use
+      venueAssignment: assignment,
+    },
+  });
+});
+
+/**
+ * Role-Based Authorization Middleware Factory
+ * 
+ * Ensures the authenticated user has the specified role for the venue.
+ * Skeleton implementation - will be used in Epic 2+ for granular permissions.
+ * 
+ * @param requiredRole - The role required (e.g., "owner", "manager", "staff")
+ */
+const enforceRole = (requiredRole: string) =>
+  t.middleware(async ({ ctx, next, getRawInput }) => {
+    const rawInput = await getRawInput();
+    const venueId = (rawInput as { venueId?: string }).venueId;
+
+    if (!venueId) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "venueId is required for role-protected procedures",
+      });
+    }
+
+    // Query StaffAssignment with role check
+    const assignment = await ctx.db.staffAssignment.findFirst({
+      where: {
+        userId: ctx.session.user.id,
+        venueId,
+        role: requiredRole,
+        deletedAt: null,
+      },
+    });
+
+    if (!assignment) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: `You do not have the required role (${requiredRole}) for this venue`,
+      });
+    }
+
+    return next({
+      ctx: {
+        ...ctx,
+        venueAssignment: assignment,
+      },
+    });
+  });
+
+/**
  * Protected (authenticated) procedure
  *
  * If you want a query or mutation to ONLY be accessible to logged in users, use this. It verifies
@@ -120,14 +229,30 @@ export const publicProcedure = t.procedure.use(timingMiddleware);
  */
 export const protectedProcedure = t.procedure
   .use(timingMiddleware)
-  .use(({ ctx, next }) => {
-    if (!ctx.session?.user) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
-    }
-    return next({
-      ctx: {
-        // infers the `session` as non-nullable
-        session: { ...ctx.session, user: ctx.session.user },
-      },
-    });
-  });
+  .use(enforceUserIsAuthed);
+
+/**
+ * Venue-Protected Procedure
+ * 
+ * Requires authentication AND venue access.
+ * Use this for endpoints that operate on a specific venue.
+ * Input must include `venueId: string`.
+ */
+export const venueProtectedProcedure = t.procedure
+  .use(timingMiddleware)
+  .use(enforceUserIsAuthed)
+  .use(enforceVenueAccess);
+
+/**
+ * Role-Protected Procedure Factory
+ * 
+ * Requires authentication AND specific role for the venue.
+ * Skeleton implementation for Epic 2+.
+ * 
+ * Example: `roleProtectedProcedure("owner").query(...)`
+ */
+export const roleProtectedProcedure = (role: string) =>
+  t.procedure
+    .use(timingMiddleware)
+    .use(enforceUserIsAuthed)
+    .use(enforceRole(role));

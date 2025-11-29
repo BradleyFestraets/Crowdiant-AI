@@ -1,4 +1,6 @@
+import { authRouter } from "~/server/api/routers/auth";
 import { healthRouter } from "~/server/api/routers/health";
+import { venueRouter } from "~/server/api/routers/venue";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 
 /**
@@ -8,8 +10,8 @@ import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
  */
 export const appRouter = createTRPCRouter({
   health: healthRouter,
-  // Additional routers will be added as features are implemented
-  // Example: auth: authRouter, venue: venueRouter
+  auth: authRouter,
+  venue: venueRouter,
 });
 
 // export type definition of API

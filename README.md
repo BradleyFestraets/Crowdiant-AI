@@ -87,6 +87,20 @@ npx auth secret
 openssl rand -base64 32
 ```
 
+**Important:** The `AUTH_SECRET` must be:
+- At least 32 characters long
+- Kept secret and never committed to version control
+- Regenerated if compromised
+- Used for encrypting JWT tokens and session data
+
+**Authentication Setup:**
+- **Credentials Provider:** Email/password authentication is enabled by default
+- **Database Sessions:** Sessions are stored in PostgreSQL (not JWT) for immediate revocation capability
+- **Password Security:** Passwords are hashed with bcrypt (cost factor: 10) before storage
+- **Protected Routes:** Use the `<ProtectedRoute>` component or `protectedProcedure` middleware
+
+For production deployments, ensure `AUTH_SECRET` is set via environment variables (Vercel/AWS Secrets Manager).
+
 ### 4. Set Up the Database
 
 #### Option A: Start Local PostgreSQL (using included script)
