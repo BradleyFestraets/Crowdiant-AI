@@ -30,7 +30,7 @@
 # - Dev moves story: backlog → in-progress → review → done
 # - All statuses start as 'backlog' until workflow commands run
 
-generated: 2025-11-30 09:30
+generated: 2025-11-30 10:05
 project: Crowdiant AI
 project_key: crowdiant-os
 tracking_system: file-system
@@ -46,7 +46,6 @@ development_status:
   1-5-development-deployment-pipeline: done
   1-6-observability-monitoring-setup: done
   epic-1-retrospective: completed
-  epic-1-retrospective: optional
 
   # EPIC 2: User & Venue Management (Sprint 1)
   epic-2: contexted
@@ -203,9 +202,11 @@ development_status:
 # Current Status Distribution:
 #   Epics: 12 backlog, 2 contexted
 #   Stories: 95 backlog, 1 drafted, 0 ready-for-dev, 0 in-progress, 0 review, 6 done
-#   Retrospectives: 14 optional, 0 completed
+#   Retrospectives: 13 optional, 1 completed
 #
 # Next Actions:
-#   1. Complete remaining acceptance criteria for Stories 1.5 & 1.6 (CI pipeline, health endpoints, metrics)
-#   2. Finalize Epic 1 retrospective then move Epic 2 stories from backlog → drafted
-#   3. Begin Story 2.1 (Venue Registration) scaffolding once Story 1.5 marked done
+#   1. Confirm Sentry deprecation resolved (instrumentation consolidated) & monitor for new events.
+#   2. Add missing password reset + component docs page (decide build now vs defer) before broadening auth usage.
+#   3. Implement full Venue registration flow (owner user creation, slug uniqueness validation, post-create redirect) – Story 2.1.
+#   4. Introduce initial test suite (slug uniqueness, role guard middleware) to baseline quality for Epic 2.
+#   5. Prepare minimal UX for staff invitation (token model draft) ahead of Story 2.2 drafting.
