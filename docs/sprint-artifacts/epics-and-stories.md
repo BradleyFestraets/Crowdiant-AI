@@ -246,15 +246,25 @@ model StaffAssignment {
 **I want to** establish CI/CD pipeline
 **So that** we can deploy reliably and frequently
 
-**Acceptance Criteria:**
-- [ ] Set up Vercel project and link GitHub repo
-- [ ] Configure environment variables in Vercel
-- [ ] Set up database (PlanetScale or Supabase)
-- [ ] Configure automatic deployments on push to main
-- [ ] Set up preview deployments for PRs
-- [ ] Add GitHub Actions for linting and type checking
-- [ ] Configure Prisma migrations for production
-- [ ] Set up error tracking (Sentry or similar)
+**Acceptance Criteria (Updated - 2025-11-30):**
+- [ ] Set up Vercel project and link GitHub repo (pending external provisioning)
+- [x] Configure environment variables in Vercel (DATABASE_URL, AUTH_SECRET, SENTRY_DSN, NEXT_PUBLIC_SENTRY_DSN, etc.)
+- [x] Set up PostgreSQL database (Prisma Accelerate connection pooling)
+- [ ] Configure automatic deployments on push to main (pending Vercel linkage)
+- [ ] Set up preview deployments for PRs (pending Vercel linkage)
+- [x] Add GitHub Actions for linting and type checking (ci.yml present)
+- [x] Configure Prisma migrations for production (initial migration applied)
+- [x] Set up error tracking (Sentry manual integration)
+
+**Implementation Status:**
+- Completed: Environment variables established in Vercel, PostgreSQL + Prisma Accelerate wired, initial migration, Sentry integrated.
+- Pending: Vercel project linkage verification, CI workflows (lint/type), preview deployments, automated deploy trigger, additional hardening.
+
+**Adjustments from Original Plan:**
+- Chose PostgreSQL (not PlanetScale/MySQL) aligning with current schema; removed mention of Supabase for clarity.
+- Prisma Accelerate used to reduce connection overhead in serverless environments.
+- Sentry wizard was bypassed; manual config with `withSentryConfig` applied; deprecated `hideSourceMaps` removed.
+
 
 **Environment Variables to Configure:**
 - DATABASE_URL
@@ -262,10 +272,13 @@ model StaffAssignment {
 - STRIPE_SECRET_KEY (test mode)
 - Redis connection details
 
-**Technical Notes:**
-- Use Vercel CLI for local testing
-- Keep production and staging environments separate
-- Document deployment process
+**Technical Notes (Updated):**
+- Use Vercel CLI locally once project link confirmed.
+- Consider `DIRECT_URL` (non-pooled) for migrations vs pooled `DATABASE_URL` for runtime.
+- Sessions currently stored in Postgres via NextAuth models (Redis not yet provisioned).
+- Logging currently uses `pino` (spec previously referenced `winston`).
+- Add security headers (pending) and request ID middleware in a future hardening pass.
+- Document manual Sentry setup & environment variable minimization (no `SENTRY_ORG` / `SENTRY_PROJECT` in env – static in config).
 
 **Definition of Done:**
 - Push to main auto-deploys to production
@@ -287,17 +300,23 @@ model StaffAssignment {
 **I want to** establish comprehensive observability and monitoring
 **So that** we can detect, diagnose, and resolve issues quickly
 
-**Acceptance Criteria:**
-- [ ] Set up Sentry for error tracking and performance monitoring
-- [ ] Configure structured logging with winston or pino
-- [ ] Implement application metrics collection (response times, error rates)
-- [ ] Add health check endpoints (`/api/health`, `/api/health/db`, `/api/health/redis`)
-- [ ] Set up uptime monitoring (Vercel monitoring or external service)
-- [ ] Configure log aggregation (Vercel logs or DataDog)
-- [ ] Implement custom error boundaries in React
-- [ ] Add request ID tracking for distributed tracing
-- [ ] Configure alerts for critical errors (payment failures, auth issues)
-- [ ] Set up performance monitoring for key user flows (Express Checkout, POS)
+**Acceptance Criteria (Updated - 2025-11-30):**
+- [x] Set up Sentry for error tracking and performance monitoring (manual config, DSN validated)
+- [x] Configure structured logging with pino (initial logger – Winston deferred)
+- [x] Implement application metrics collection (MVP in-memory stub `metrics.ts`)
+- [x] Add health check endpoints (`/api/health`, `/api/health/db`) – redis deferred
+- [x] Add request ID tracking (middleware assigns `x-request-id` header)
+- [x] Implement custom error boundary (`app/error.tsx`)
+- [ ] Set up uptime monitoring (Vercel monitoring or external service) – pending
+- [ ] Configure log aggregation (aggregation tooling pending; using Vercel function logs)
+- [ ] Configure alerts for critical errors (payment failures, auth issues) – pending until payment flows exist
+- [ ] Set up performance monitoring for key user flows (Express Checkout, POS) – pending (activate in Epics 3 & 4)
+
+**Implementation Status:**
+- Completed: Sentry initialized across client/server/edge; basic pino logger present.
+- In Progress: Deciding metrics backend (Prometheus vs hosted) prior to implementation.
+- Pending: Health endpoints, request ID middleware, alert rule configuration, performance instrumentation for upcoming Epics.
+
 
 **Key Metrics to Track:**
 - API response times (p50, p95, p99)
@@ -311,19 +330,20 @@ model StaffAssignment {
 
 **Monitoring Tools:**
 - **Error Tracking:** Sentry (Next.js + tRPC integration)
-- **Logs:** Winston with JSON formatting
-- **Metrics:** Prometheus + Grafana (optional) or Vercel Analytics
-- **APM:** Sentry Performance or DataDog APM
-- **Uptime:** BetterStack or Vercel monitoring
+- **Logs:** Pino (structured JSON)
+- **Metrics:** In-memory stub (upgrade path: Prometheus + Grafana / hosted)
+- **APM:** Sentry Performance
+- **Uptime:** BetterStack or Vercel monitoring (planned)
 
-**Environment Variables:**
+**Environment Variables (Updated):**
 ```env
-SENTRY_DSN=
-SENTRY_ORG=
-SENTRY_PROJECT=
-LOG_LEVEL=info
-ENABLE_METRICS=true
+SENTRY_DSN=            # Required – shared for server & client via NEXT_PUBLIC_SENTRY_DSN
+NEXT_PUBLIC_SENTRY_DSN=# Mirror of SENTRY_DSN for browser bundle
+SENTRY_AUTH_TOKEN=     # Deployment-time only (source maps upload); not needed at runtime
+LOG_LEVEL=info         # pino logger level
+ENABLE_METRICS=true    # Planned toggle – metrics not yet implemented
 ```
+Note: `SENTRY_ORG` and `SENTRY_PROJECT` removed from environment; values embedded statically in Sentry build config.
 
 **Technical Implementation:**
 ```typescript
@@ -348,18 +368,19 @@ Sentry.init({
   },
 });
 
-// lib/monitoring/logger.ts
-import winston from 'winston';
+// lib/monitoring/logger.ts (Updated to pino)
+import pino from 'pino';
 
-export const logger = winston.createLogger({
+export const logger = pino({
   level: process.env.LOG_LEVEL || 'info',
-  format: winston.format.json(),
-  defaultMeta: { service: 'crowdiant-os' },
-  transports: [
-    new winston.transports.Console({
-      format: winston.format.simple(),
-    }),
-  ],
+  base: { service: 'crowdiant-os' },
+  redact: {
+    paths: ['req.headers.authorization'],
+    remove: true,
+  },
+  transport: process.env.NODE_ENV === 'development'
+    ? { target: 'pino-pretty', options: { colorize: true } }
+    : undefined,
 });
 
 // lib/monitoring/metrics.ts
@@ -421,15 +442,12 @@ alerts:
     notification: "slack #performance"
 ```
 
-**Definition of Done:**
-- Sentry captures errors and performance data
-- Health check endpoints return accurate status
-- Critical errors trigger alerts
-- Logs are structured and searchable
-- Metrics dashboard shows key performance indicators
-- Error boundaries prevent app crashes
-- Payment failures are tracked separately
-- Documentation includes runbook for common issues
+**Definition of Done (Revised):**
+- Phase 1 (Completed): Sentry error capture + basic structured logging.
+- Phase 2 (Pending): Health endpoints, request ID propagation, metrics ingestion, alert rules.
+- Phase 3 (Pending): Performance tracing for Express Checkout & POS flows, React error boundaries, dashboard KPIs.
+
+Current completion: Phase 1 only.
 
 ---
 

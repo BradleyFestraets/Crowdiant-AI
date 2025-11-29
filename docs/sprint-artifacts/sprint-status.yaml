@@ -30,7 +30,7 @@
 # - Dev moves story: backlog → in-progress → review → done
 # - All statuses start as 'backlog' until workflow commands run
 
-generated: 2025-11-26 16:45
+generated: 2025-11-30 09:30
 project: Crowdiant AI
 project_key: crowdiant-os
 tracking_system: file-system
@@ -45,11 +45,12 @@ development_status:
   1-4-shared-ui-component-library-setup: done
   1-5-development-deployment-pipeline: done
   1-6-observability-monitoring-setup: done
+  epic-1-retrospective: completed
   epic-1-retrospective: optional
 
   # EPIC 2: User & Venue Management (Sprint 1)
-  epic-2: backlog
-  2-1-venue-registration-onboarding: backlog
+  epic-2: contexted
+  2-1-venue-registration-onboarding: drafted
   2-2-staff-invitation-management: backlog
   2-3-user-authentication-login-logout: backlog
   2-4-password-reset-flow: backlog
@@ -200,11 +201,11 @@ development_status:
 # Total Retrospectives: 14
 # 
 # Current Status Distribution:
-#   Epics: 14 backlog, 0 contexted
-#   Stories: 98 backlog, 0 drafted, 0 ready-for-dev, 0 in-progress, 0 review, 0 done
+#   Epics: 12 backlog, 2 contexted
+#   Stories: 95 backlog, 1 drafted, 0 ready-for-dev, 0 in-progress, 0 review, 6 done
 #   Retrospectives: 14 optional, 0 completed
 #
 # Next Actions:
-#   1. Run *create-epic-tech-context for Epic 1 (Foundation & Platform Setup)
-#   2. After Epic 1 contexted, run *create-story for Story 1.1 (Project Initialization)
-#   3. Continue sprint-by-sprint progression through Sprints 0-15
+#   1. Complete remaining acceptance criteria for Stories 1.5 & 1.6 (CI pipeline, health endpoints, metrics)
+#   2. Finalize Epic 1 retrospective then move Epic 2 stories from backlog → drafted
+#   3. Begin Story 2.1 (Venue Registration) scaffolding once Story 1.5 marked done

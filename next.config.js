@@ -7,13 +7,27 @@ import { withSentryConfig } from "@sentry/nextjs";
 import "./src/env.js";
 
 /** @type {import("next").NextConfig} */
+const securityHeaders = [
+  { key: "X-Frame-Options", value: "DENY" },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+  { key: "Cross-Origin-Resource-Policy", value: "same-site" },
+  { key: "Cross-Origin-Embedder-Policy", value: "require-corp" },
+];
+
 const config = {
   // Standalone output for Docker - comment out for Vercel deployment
   // output: 'standalone',
-
-  // Enable instrumentation for Sentry
-  experimental: {
-    instrumentationHook: true,
+  // Instrumentation hook no longer needs explicit opt-in; remove invalid experimental flag
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: securityHeaders,
+      },
+    ];
   },
 };
 
@@ -46,8 +60,7 @@ export default withSentryConfig(config, {
   // side errors will fail.
   tunnelRoute: "/monitoring",
 
-  // Hides source maps from generated client bundles
-  hideSourceMaps: true,
+  // Source maps handling now controlled by default Sentry config; removed deprecated hideSourceMaps flag
 
   // Automatically tree-shake Sentry logger statements to reduce bundle size
   disableLogger: true,

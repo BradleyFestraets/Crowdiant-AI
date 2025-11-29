@@ -9,10 +9,8 @@ import "./src/env.js";
 /** @type {import("next").NextConfig} */
 const config = {
   output: "standalone", // For Docker deployments
-  
-  // Sentry configuration
+  // Sentry configuration (updated: hideSourceMaps removed as deprecated)
   sentry: {
-    hideSourceMaps: true,
     widenClientFileUpload: true,
   },
 };
@@ -24,7 +22,6 @@ export default process.env.SENTRY_DSN
       silent: !process.env.CI,
       widenClientFileUpload: true,
       tunnelRoute: "/monitoring-tunnel",
-      hideSourceMaps: true,
       disableLogger: true,
       automaticVercelMonitors: true,
     })

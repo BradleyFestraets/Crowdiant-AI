@@ -24,11 +24,11 @@ The success of this epic directly impacts development velocity, system reliabili
 
 ---
 
-## Objectives and Scope
+## Objectives and Scope (Updated 2025-11-30)
 
 ### In Scope
 - ✅ T3 Stack initialization (Next.js 14+, TypeScript, tRPC, Prisma, NextAuth, Tailwind)
-- ✅ PostgreSQL database setup with PlanetScale or Supabase
+- ✅ PostgreSQL database setup (managed Postgres) with Prisma Accelerate pooling
 - ✅ Core Prisma schema with multi-tenant models (Venue, User, StaffAssignment)
 - ✅ NextAuth.js authentication with multi-tenant session management
 - ✅ tRPC middleware for authentication and venue access control
@@ -36,8 +36,8 @@ The success of this epic directly impacts development velocity, system reliabili
 - ✅ Vercel deployment pipeline with preview environments
 - ✅ Environment variable management (.env.example, Vercel configuration)
 - ✅ Sentry error tracking and performance monitoring
-- ✅ Structured logging with Winston
-- ✅ Health check endpoints (/api/health, /api/health/db, /api/health/redis)
+- ✅ Structured logging with Pino (Winston deferred)
+- ✅ Health check endpoints (/api/health) – DB & Redis endpoints pending
 - ✅ Development documentation (README.md, setup instructions)
 
 ### Out of Scope (Future Epics)
@@ -67,11 +67,11 @@ This ensures:
 - **NextAuth.js:** Extensible authentication for multi-tenant scenarios
 - **Tailwind CSS:** Utility-first styling with shadcn/ui components
 
-### Architecture Constraints
-1. **Multi-Tenancy:** All data models must include `venueId` for tenant isolation (Architecture: Data Architecture > Multi-Tenant Pattern)
-2. **Security:** PCI DSS compliance requirements inform authentication and data handling (Architecture: Security Architecture)
-3. **Real-Time Readiness:** Foundation must support future Socket.io integration (Architecture: Real-Time Layer)
-4. **Scalability:** Serverless deployment model on Vercel for horizontal scaling (Architecture: Deployment)
+### Architecture Constraints (Adjusted)
+1. **Multi-Tenancy:** Core pattern established; additional tenant tables arrive later.
+2. **Security:** PCI-adjacent posture; full PCI scope deferred until payment flows (Epic 3).
+3. **Real-Time Readiness:** Socket.io deferred (Epics 3 & 6); code structured for future event layer.
+4. **Scalability:** Prisma Accelerate pooled connections on Vercel serverless.
 
 ### Component Mapping
 ```
@@ -81,7 +81,7 @@ This ensures:
 └───────────────────┬─────────────────────────────────────────┘
                     │
          ┌──────────▼──────────┐
-         │   Next.js 14 App    │
+         │   Next.js 15 App    │
          │   App Router        │◄──── tRPC API Layer (Type-Safe)
          │   (Server + Client) │
          └──────────┬──────────┘
@@ -93,7 +93,7 @@ This ensures:
                     │
          ┌──────────▼──────────┐
          │   PostgreSQL 16     │
-         │   (PlanetScale)     │◄──── Row-Level Security (Future)
+         │   (Managed + Accelerate) │◄──── Row-Level Security (Future)
          │   Multi-Tenant DB   │
          └─────────────────────┘
 
@@ -103,7 +103,7 @@ Observability:
 │ (Error + APM)   │
 └─────────────────┘
 ┌─────────────────┐
-│ Winston Logger  │◄──── Structured Logging (JSON)
+│ Pino Logger     │◄──── Structured Logging (JSON)
 │ (Vercel Logs)   │
 └─────────────────┘
 ```
@@ -700,46 +700,32 @@ const config = {
 
 ---
 
-### Observability
+### Observability (Updated)
 
 | Signal Type | Implementation | Retention |
 |-------------|----------------|-----------|
 | **Error Tracking** | Sentry (Next.js + tRPC integration) | 90 days |
-| **Application Logs** | Winston structured logging (JSON) | 30 days |
+| **Application Logs** | Pino structured logging (JSON) | 30 days |
 | **Performance Traces** | Sentry Performance (APM) | 30 days |
 | **Custom Metrics** | (Future: Prometheus + Grafana) | N/A (MVP) |
 | **Health Checks** | /api/health/* endpoints | Real-time |
 
-**Logging Configuration:**
+**Logging Configuration (Pino):**
 
 ```typescript
-// lib/monitoring/logger.ts
-import winston from 'winston';
+import pino from 'pino';
 
-export const logger = winston.createLogger({
+export const logger = pino({
   level: process.env.LOG_LEVEL || 'info',
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.errors({ stack: true }),
-    winston.format.json()
-  ),
-  defaultMeta: { 
-    service: 'crowdiant-os',
-    environment: process.env.NODE_ENV,
-  },
-  transports: [
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.simple()
-      ),
-    }),
-  ],
+  base: { service: 'crowdiant-os', env: process.env.NODE_ENV },
+  redact: { paths: ['req.headers.authorization'], remove: true },
+  transport: process.env.NODE_ENV === 'development'
+    ? { target: 'pino-pretty', options: { colorize: true } }
+    : undefined,
 });
 
-// Usage example
-logger.info('User logged in', { userId: '123', venueId: '456' });
-logger.error('Database query failed', { error: err, query: 'User.findUnique' });
+logger.info({ userId: '123', venueId: '456' }, 'User logged in');
+logger.error({ err: new Error('DB fail') }, 'Database query failed');
 ```
 
 **Sentry Configuration:**
@@ -788,9 +774,9 @@ Sentry.init({
 ```json
 {
   "dependencies": {
-    "next": "^14.2.0",
-    "react": "^18.3.0",
-    "react-dom": "^18.3.0",
+    "next": "^15.5.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "@trpc/server": "^11.0.0",
     "@trpc/client": "^11.0.0",
     "@trpc/react-query": "^11.0.0",
@@ -805,7 +791,7 @@ Sentry.init({
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "tailwind-merge": "^2.3.0",
-    "winston": "^3.13.0",
+    "pino": "^9.3.0",
     "@sentry/nextjs": "^8.0.0"
   }
 }
@@ -1158,7 +1144,7 @@ Epic 1: Foundation & Platform Setup
 
 ---
 
-### Environment Variables Reference
+### Environment Variables Reference (Revised)
 
 ```bash
 # Epic 1 Environment Variables
@@ -1167,9 +1153,8 @@ Epic 1: Foundation & Platform Setup
 # ============================================================================
 # DATABASE (Required)
 # ============================================================================
-DATABASE_URL="mysql://user:password@host/database?sslaccept=strict"
-# PlanetScale: Get from PlanetScale dashboard
-# Format: mysql://[username]:[password]@[host]/[database]?sslaccept=strict
+DATABASE_URL="prisma+postgres://accelerate-token@accelerate-host?connection_string=ENCODED_POSTGRES_URL"
+DIRECT_URL="postgresql://user:password@host:5432/db" # Optional direct for migrations/scripts
 
 # ============================================================================
 # NEXTAUTH (Required)
@@ -1186,13 +1171,8 @@ NEXTAUTH_URL="http://localhost:3000"
 # SENTRY (Required for Production, Optional for Dev)
 # ============================================================================
 SENTRY_DSN="https://public@sentry.io/project-id"
-# Get from Sentry dashboard after project creation
-
-SENTRY_ORG="crowdiant"
-# Your Sentry organization slug
-
-SENTRY_PROJECT="crowdiant-os"
-# Your Sentry project slug
+NEXT_PUBLIC_SENTRY_DSN="https://public@sentry.io/project-id"
+SENTRY_AUTH_TOKEN="" # Build-time only (source maps upload)
 
 # ============================================================================
 # LOGGING (Optional)
