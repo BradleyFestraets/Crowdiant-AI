@@ -1,6 +1,6 @@
 # Story 1.3: Authentication & Authorization Framework
 
-**Status:** review  
+**Status:** done  
 **Story ID:** E1.3  
 **Epic:** Epic 1 - Foundation & Platform Setup  
 **Sprint:** Sprint 0  
