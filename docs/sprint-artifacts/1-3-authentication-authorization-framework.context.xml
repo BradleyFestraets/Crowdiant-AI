@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Story Context for 1-3-authentication-authorization-framework -->
+<!-- Generated: 2025-11-26 -->
+<!-- Status: ready-for-dev -->
+
+<story-context>
+  <metadata>
+    <story_id>E1.3</story_id>
+    <story_key>1-3-authentication-authorization-framework</story_key>
+    <epic_id>E1</epic_id>
+    <title>Authentication &amp; Authorization Framework</title>
+    <status>ready-for-dev</status>
+    <priority>P0</priority>
+    <effort_points>5</effort_points>
+  </metadata>
+
+  <user_story>
+    <as_a>developer</as_a>
+    <i_want>configure NextAuth.js with multi-tenant session management and tRPC authorization middleware</i_want>
+    <so_that>users can securely authenticate and access only their authorized venues and resources</so_that>
+  </user_story>
+
+  <acceptance_criteria>
+    <ac id="AC1">NextAuth.js configured with credentials provider for email/password login in src/server/auth.ts</ac>
+    <ac id="AC2">Session management uses database strategy (Session model from Story 1.2), not JWT-only</ac>
+    <ac id="AC3">tRPC middleware enforceUserIsAuthed checks authentication and throws UNAUTHORIZED if missing session</ac>
+    <ac id="AC4">tRPC middleware enforceVenueAccess verifies user has StaffAssignment for requested venueId, throws FORBIDDEN if not</ac>
+    <ac id="AC5">tRPC middleware enforceRole checks specific staff role (implementation skeleton for future use)</ac>
+    <ac id="AC6">Password hashing implemented with bcrypt (cost factor: 10) in registration/login</ac>
+    <ac id="AC7">JWT token configuration includes userId, email, name in session claims</ac>
+    <ac id="AC8">Protected route wrapper redirects unauthenticated users to /login page</ac>
+    <ac id="AC9">User can successfully log in with valid credentials and receive session cookie</ac>
+    <ac id="AC10">Session persists across page reloads (browser refresh maintains authentication)</ac>
+    <ac id="AC11">Protected tRPC routes reject requests without valid session (401 UNAUTHORIZED)</ac>
+    <ac id="AC12">Venue-protected routes reject requests without venue access (403 FORBIDDEN)</ac>
+  </acceptance_criteria>
+
+  <story_tasks>
+    <task id="1" title="Configure NextAuth.js Core" maps_to="AC1, AC2, AC6, AC7">
+      <subtask>Update src/server/auth.ts with NextAuth configuration</subtask>
+      <subtask>Configure credentials provider with email/password</subtask>
+      <subtask>Implement authorize() function to verify credentials against User model</subtask>
+      <subtask>Add bcrypt password comparison logic</subtask>
+      <subtask>Configure database adapter to use Prisma (Session, Account models)</subtask>
+      <subtask>Set session strategy to "database" (not "jwt")</subtask>
+      <subtask>Configure callbacks: jwt() and session() to include user data</subtask>
+      <subtask>Add NEXTAUTH_SECRET to .env.example</subtask>
+    </task>
+
+    <task id="2" title="Create Authentication Router" maps_to="AC6, AC9">
+      <subtask>Create src/server/api/routers/auth.ts file</subtask>
+      <subtask>Implement register mutation (publicProcedure) with email validation, password hashing, user creation</subtask>
+      <subtask>Implement requestPasswordReset mutation skeleton (publicProcedure)</subtask>
+      <subtask>Add auth router to src/server/api/root.ts</subtask>
+    </task>
+
+    <task id="3" title="Create tRPC Authentication Middleware" maps_to="AC3, AC11">
+      <subtask>Create enforceUserIsAuthed middleware in src/server/api/trpc.ts</subtask>
+      <subtask>Check if ctx.session?.user exists, throw UNAUTHORIZED if missing</subtask>
+      <subtask>Export protectedProcedure using enforceUserIsAuthed</subtask>
+      <subtask>Test middleware with sample protected query</subtask>
+    </task>
+
+    <task id="4" title="Create Venue Access Middleware" maps_to="AC4, AC12">
+      <subtask>Create enforceVenueAccess middleware in src/server/api/trpc.ts</subtask>
+      <subtask>Extract venueId from input, query StaffAssignment</subtask>
+      <subtask>Throw FORBIDDEN if no assignment found or deletedAt is not null</subtask>
+      <subtask>Export venueProtectedProcedure combining auth + venue access</subtask>
+    </task>
+
+    <task id="5" title="Create Role-Based Authorization Middleware" maps_to="AC5">
+      <subtask>Create enforceRole middleware factory in src/server/api/trpc.ts</subtask>
+      <subtask>Accept role parameter, query StaffAssignment with role check</subtask>
+      <subtask>Throw FORBIDDEN if role doesn't match</subtask>
+      <subtask>Add comment: "Skeleton implementation - will be used in Epic 2+"</subtask>
+    </task>
+
+    <task id="6" title="Create Basic Venue Router" maps_to="AC4, AC12">
+      <subtask>Create src/server/api/routers/venue.ts file</subtask>
+      <subtask>Implement listAccessible query (protectedProcedure)</subtask>
+      <subtask>Implement getById query (venueProtectedProcedure)</subtask>
+      <subtask>Add venue router to src/server/api/root.ts</subtask>
+    </task>
+
+    <task id="7" title="Create Protected Route Wrapper" maps_to="AC8">
+      <subtask>Create src/components/auth/ProtectedRoute.tsx component</subtask>
+      <subtask>Use useSession() hook from next-auth/react</subtask>
+      <subtask>Handle loading, unauthenticated, and authenticated states</subtask>
+      <subtask>Add TypeScript types for component props</subtask>
+    </task>
+
+    <task id="8" title="Create Login Page" maps_to="AC9, AC10">
+      <subtask>Create src/app/login/page.tsx route</subtask>
+      <subtask>Create login form with email and password fields</subtask>
+      <subtask>Use NextAuth signIn() function with credentials provider</subtask>
+      <subtask>Handle successful login and error messages</subtask>
+      <subtask>Style with Tailwind + shadcn/ui components</subtask>
+    </task>
+
+    <task id="9" title="Update tRPC Context" maps_to="AC2, AC3">
+      <subtask>Update createTRPCContext in src/server/api/trpc.ts</subtask>
+      <subtask>Call getServerAuthSession() to load session from database</subtask>
+      <subtask>Include session in returned context object</subtask>
+      <subtask>Ensure context is properly typed</subtask>
+    </task>
+
+    <task id="10" title="Add Environment Variables" maps_to="AC1">
+      <subtask>Add NEXTAUTH_SECRET and NEXTAUTH_URL to .env.example</subtask>
+      <subtask>Generate actual NEXTAUTH_SECRET for .env (do not commit)</subtask>
+      <subtask>Document generation command in README.md</subtask>
+      <subtask>Update README with NextAuth setup instructions</subtask>
+    </task>
+
+    <task id="11" title="Integration Testing" maps_to="AC9, AC10, AC11, AC12">
+      <subtask>Test registration flow (user created with hashed password)</subtask>
+      <subtask>Test login flow (session created, cookie set)</subtask>
+      <subtask>Test protected tRPC route (401 without session, success with session)</subtask>
+      <subtask>Test venue access middleware (403 without access, success with access)</subtask>
+      <subtask>Test session persistence (remains valid after page refresh)</subtask>
+    </task>
+
+    <task id="12" title="Code Quality &amp; Documentation" maps_to="All ACs">
+      <subtask>Run ESLint, TypeScript checks, Prettier</subtask>
+      <subtask>Add TSDoc comments to all middleware functions</subtask>
+      <subtask>Update README.md with authentication setup instructions</subtask>
+      <subtask>Document middleware usage patterns</subtask>
+      <subtask>Add security notes (password handling, session management)</subtask>
+    </task>
+
+    <task id="13" title="Commit and Update Status" maps_to="All ACs">
+      <subtask>Verify all acceptance criteria met</subtask>
+      <subtask>Stage and commit changes</subtask>
+      <subtask>Update sprint-status.yaml to "review"</subtask>
+      <subtask>Update story file with completion notes</subtask>
+      <subtask>Document any deviations or technical debt</subtask>
+    </task>
+  </story_tasks>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/sprint-artifacts/epic-1-context.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>APIs and Interfaces &gt; Auth Router</section>
+        <snippet>Defines authentication endpoints including registration, login, and password reset. Specifies bcrypt for password hashing with cost factor 10. Includes code examples for credentials provider and session management.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/epic-1-context.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>APIs and Interfaces &gt; tRPC Middleware</section>
+        <snippet>Provides implementation patterns for enforceUserIsAuthed, enforceVenueAccess, and enforceRole middleware. Shows how to compose middleware for different authorization levels.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/epic-1-context.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Workflows and Sequencing &gt; Authentication Flow</section>
+        <snippet>Diagrams the complete login flow from credentials submission through session creation and token issuance. Explains database session strategy rationale.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Crowdiant Architecture</title>
+        <section>Security Architecture</section>
+        <snippet>Defines security principles including never trusting client-side checks, database sessions for immediate revocation, HttpOnly cookies, and password never logging policy.</snippet>
+      </doc>
+      <doc>
+        <path>docs/technical-specs/04-api-specifications-technical-spec.md</path>
+        <title>API Specifications</title>
+        <section>tRPC Procedures and Authorization</section>
+        <snippet>Specifies three procedure types: publicProcedure (unauthenticated), protectedProcedure (user authenticated), venueProtectedProcedure (venue access verified). Details error codes UNAUTHORIZED and FORBIDDEN.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/1-2-database-architecture-multi-tenant-schema.md</path>
+        <title>Story 1.2: Database Architecture</title>
+        <section>Learnings and Completion Notes</section>
+        <snippet>Prisma schema created with User (email, passwordHash, staffAt relation), StaffAssignment (userId, venueId, role), Session and Account models for NextAuth. Migration applied successfully. All models use cuid() keys, snake_case mapping, soft deletes.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>src/server/auth/config.ts</path>
+        <kind>config</kind>
+        <symbol>authConfig</symbol>
+        <lines>1-54</lines>
+        <reason>Existing NextAuth configuration with Discord provider and PrismaAdapter. Needs extension for credentials provider and session callbacks per Story 1.3 requirements.</reason>
+      </artifact>
+      <artifact>
+        <path>src/server/auth/index.ts</path>
+        <kind>auth-export</kind>
+        <symbol>auth, handlers, signIn, signOut</symbol>
+        <reason>Exports NextAuth instance and utilities. Already configured, needs credentials provider addition.</reason>
+      </artifact>
+      <artifact>
+        <path>src/server/api/trpc.ts</path>
+        <kind>trpc-config</kind>
+        <symbol>createTRPCContext, publicProcedure, protectedProcedure</symbol>
+        <lines>1-141</lines>
+        <reason>Existing tRPC setup with context creation and basic protectedProcedure. Already has auth check middleware. Needs venue access and role middleware additions.</reason>
+      </artifact>
+      <artifact>
+        <path>src/server/api/root.ts</path>
+        <kind>trpc-router</kind>
+        <symbol>appRouter</symbol>
+        <reason>Root tRPC router where auth and venue routers need to be registered. Currently has health router.</reason>
+      </artifact>
+      <artifact>
+        <path>src/server/api/routers/health.ts</path>
+        <kind>router</kind>
+        <symbol>healthRouter</symbol>
+        <reason>Example router showing publicProcedure pattern. Can be used as template for auth router structure.</reason>
+      </artifact>
+      <artifact>
+        <path>src/server/db.ts</path>
+        <kind>database</kind>
+        <symbol>db</symbol>
+        <reason>Prisma client singleton. Will be used for User, Session, Account, StaffAssignment queries in authentication logic.</reason>
+      </artifact>
+      <artifact>
+        <path>prisma/schema.prisma</path>
+        <kind>schema</kind>
+        <symbol>User, Session, Account, StaffAssignment, Venue</symbol>
+        <reason>Database schema from Story 1.2. Contains all models needed for authentication: User (email, passwordHash), Session (sessionToken, userId), StaffAssignment (userId, venueId, role).</reason>
+      </artifact>
+      <artifact>
+        <path>src/app/page.tsx</path>
+        <kind>page</kind>
+        <symbol>HomePage</symbol>
+        <reason>Current homepage with basic auth check. Shows pattern for using session in server components.</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <node>
+        <package>next-auth</package>
+        <version>5.0.0-beta.25</version>
+        <reason>Authentication library - already installed, supports credentials provider and database sessions</reason>
+      </node>
+      <node>
+        <package>@auth/prisma-adapter</package>
+        <version>^2.7.2</version>
+        <reason>Prisma adapter for NextAuth - already configured in authConfig</reason>
+      </node>
+      <node>
+        <package>@trpc/server</package>
+        <version>^11.0.0</version>
+        <reason>tRPC server for type-safe APIs and middleware - already installed</reason>
+      </node>
+      <node>
+        <package>zod</package>
+        <version>^3.24.2</version>
+        <reason>Schema validation for input validation in auth router - already installed</reason>
+      </node>
+      <node>
+        <package>bcryptjs</package>
+        <version>NEEDS_INSTALL</version>
+        <reason>Password hashing library for AC6 - cost factor 10. Need to install: pnpm add bcryptjs @types/bcryptjs</reason>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface>
+      <name>NextAuth Credentials Provider</name>
+      <kind>provider-config</kind>
+      <signature>CredentialsProvider({ credentials: { email, password }, authorize: async (credentials) => User | null })</signature>
+      <path>src/server/auth/config.ts</path>
+    </interface>
+    <interface>
+      <name>tRPC Middleware</name>
+      <kind>middleware-factory</kind>
+      <signature>t.middleware(({ ctx, next, input }) => Promise&lt;Result&gt;)</signature>
+      <path>src/server/api/trpc.ts</path>
+    </interface>
+    <interface>
+      <name>Prisma User Model</name>
+      <kind>database-model</kind>
+      <signature>User { id: string, email: string, passwordHash: string | null, staffAt: StaffAssignment[] }</signature>
+      <path>prisma/schema.prisma</path>
+    </interface>
+    <interface>
+      <name>Prisma Session Model</name>
+      <kind>database-model</kind>
+      <signature>Session { id: string, sessionToken: string, userId: string, expires: DateTime, user: User }</signature>
+      <path>prisma/schema.prisma</path>
+    </interface>
+    <interface>
+      <name>Prisma StaffAssignment Model</name>
+      <kind>database-model</kind>
+      <signature>StaffAssignment { id: string, userId: string, venueId: string, role: StaffRole, deletedAt: DateTime | null }</signature>
+      <path>prisma/schema.prisma</path>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint type="security">Never trust client-side authentication checks - all authorization must happen server-side</constraint>
+    <constraint type="security">Passwords never logged or exposed in error messages</constraint>
+    <constraint type="security">Use bcrypt with cost factor 10 for password hashing</constraint>
+    <constraint type="architecture">Use database sessions (not JWT-only) for immediate revocation capability</constraint>
+    <constraint type="architecture">All tRPC procedures must use appropriate middleware: publicProcedure, protectedProcedure, or venueProtectedProcedure</constraint>
+    <constraint type="architecture">Session cookies must be HttpOnly to prevent XSS attacks</constraint>
+    <constraint type="multi-tenant">Venue access must be verified via StaffAssignment table - check deletedAt = null</constraint>
+    <constraint type="patterns">Use existing protectedProcedure pattern in trpc.ts - extend, don't replace</constraint>
+    <constraint type="patterns">Follow health router pattern for creating new routers in src/server/api/routers/</constraint>
+    <constraint type="testing">All acceptance criteria must have corresponding integration tests</constraint>
+    <constraint type="code-quality">TypeScript strict mode - all functions must have proper types</constraint>
+    <constraint type="code-quality">Add TSDoc comments to all public functions and middleware</constraint>
+  </constraints>
+
+  <tests>
+    <standards>
+      Use Vitest for unit and integration tests. Test files colocated with source in __tests__ folders or .test.ts suffix. Follow existing testing patterns in the codebase. All middleware must have unit tests for happy path and error cases (UNAUTHORIZED, FORBIDDEN). Integration tests should cover full authentication flows including database interactions.
+    </standards>
+    <locations>
+      <location>src/**/*.test.ts</location>
+      <location>src/**/__tests__/*.ts</location>
+    </locations>
+    <ideas>
+      <test_idea ac="AC3">Unit test: enforceUserIsAuthed throws UNAUTHORIZED when ctx.session is null</test_idea>
+      <test_idea ac="AC3">Unit test: enforceUserIsAuthed passes when ctx.session.user exists</test_idea>
+      <test_idea ac="AC4">Unit test: enforceVenueAccess throws FORBIDDEN when no StaffAssignment found</test_idea>
+      <test_idea ac="AC4">Unit test: enforceVenueAccess throws FORBIDDEN when StaffAssignment has deletedAt set</test_idea>
+      <test_idea ac="AC4">Unit test: enforceVenueAccess passes when valid StaffAssignment exists</test_idea>
+      <test_idea ac="AC6">Integration test: auth.register mutation creates user with bcrypt hashed password (verify hash starts with $2a$ or $2b$)</test_idea>
+      <test_idea ac="AC6">Integration test: bcrypt.compare correctly validates password against stored hash</test_idea>
+      <test_idea ac="AC9">Integration test: signIn with valid credentials creates Session record in database</test_idea>
+      <test_idea ac="AC9">Integration test: signIn with invalid password returns error</test_idea>
+      <test_idea ac="AC10">Integration test: session persists after simulated page reload (new request with session cookie)</test_idea>
+      <test_idea ac="AC11">Integration test: protectedProcedure call without session returns 401 UNAUTHORIZED error</test_idea>
+      <test_idea ac="AC12">Integration test: venueProtectedProcedure with unauthorized venueId returns 403 FORBIDDEN</test_idea>
+    </ideas>
+  </tests>
+
+  <implementation_notes>
+    <note priority="high">Install bcryptjs dependency before implementing Task 1: pnpm add bcryptjs @types/bcryptjs</note>
+    <note priority="high">Story 1.2 already created database tables - migrations applied, Prisma Client generated</note>
+    <note priority="medium">Existing protectedProcedure in trpc.ts already implements basic auth check - use as foundation for AC3</note>
+    <note priority="medium">NextAuth config in src/server/auth/config.ts has Discord provider - add credentials provider alongside it</note>
+    <note priority="low">Login page (Task 8) will be first UI implementation - can reference T3 Stack auth examples</note>
+    <note priority="low">Role-based middleware (Task 5) is skeleton only - full implementation comes in Epic 2</note>
+  </implementation_notes>
+</story-context>
