@@ -30,7 +30,7 @@
 # - Dev moves story: backlog → in-progress → review → done
 # - All statuses start as 'backlog' until workflow commands run
 
-generated: 2025-11-30 22:25
+generated: 2025-11-30 23:00
 project: Crowdiant AI
 project_key: crowdiant-os
 tracking_system: file-system
@@ -51,7 +51,7 @@ development_status:
   epic-2: contexted
   2-1-venue-registration-onboarding: done
   2-2-staff-invitation-management: done
-  2-3-user-authentication-login-logout: backlog
+  2-3-user-authentication-login-logout: done
   2-4-password-reset-flow: backlog
   2-5-multi-venue-access-switching: backlog
   2-6-customer-account-creation-optional: backlog
@@ -201,7 +201,7 @@ development_status:
 # 
 # Current Status Distribution:
 #   Epics: 12 backlog, 2 contexted
-#   Stories: 90 backlog, 0 drafted, 0 ready-for-dev, 0 in-progress, 0 review, 8 done
+#   Stories: 89 backlog, 0 drafted, 0 ready-for-dev, 0 in-progress, 0 review, 9 done
 #   Retrospectives: 13 optional, 1 completed
 #
 # Production: https://crowdiant-ai.vercel.app
@@ -209,6 +209,6 @@ development_status:
 # Deploy: Vercel auto-deploy on push to main
 #
 # Next Actions:
-#   1. Implement Story 2.3 (Login page) – NextAuth credentials flow + UI components.
-#   2. Implement Story 2.4 (Password Reset) – already has pages, needs polish.
+#   1. Implement Story 2.4 (Password Reset Flow) – already has pages, needs UI polish.
+#   2. Implement Story 2.5 (Multi-Venue Access & Switching) – venue selector in header.
 #   3. Add test database seeding/factory utilities for faster test data creation.
