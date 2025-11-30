@@ -10,12 +10,13 @@ import Link from "next/link";
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const { add } = useToast();
-  
+
   const requestReset = api.auth.requestPasswordReset.useMutation({
     onSuccess: () => {
       add({
         title: "Password Reset Requested",
-        description: "If an account exists with this email, you'll receive a reset link shortly.",
+        description:
+          "If an account exists with this email, you'll receive a reset link shortly.",
       });
       setEmail("");
     },
@@ -40,12 +41,13 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-      <div className="flex min-h-screen items-center justify-center bg-background px-4">
-        <div className="w-full max-w-md space-y-6">
+    <div className="bg-background flex min-h-screen items-center justify-center px-4">
+      <div className="w-full max-w-md space-y-6">
         <div className="text-center">
           <h1 className="text-3xl font-bold tracking-tight">Forgot Password</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Enter your email address and we&apos;ll send you a password reset link.
+          <p className="text-muted-foreground mt-2 text-sm">
+            Enter your email address and we&apos;ll send you a password reset
+            link.
           </p>
         </div>
 
@@ -59,7 +61,9 @@ export default function ForgotPasswordPage() {
               type="email"
               placeholder="chef@restaurant.com"
               value={email}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setEmail(e.target.value)
+              }
               disabled={requestReset.isPending}
               required
             />
@@ -74,15 +78,12 @@ export default function ForgotPasswordPage() {
           </Button>
         </form>
 
-          <div className="text-center text-sm">
-            <Link
-              href="/login"
-              className="text-primary hover:underline"
-            >
-              Back to Login
-            </Link>
-          </div>
+        <div className="text-center text-sm">
+          <Link href="/login" className="text-primary hover:underline">
+            Back to Login
+          </Link>
         </div>
       </div>
+    </div>
   );
 }

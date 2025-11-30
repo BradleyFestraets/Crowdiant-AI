@@ -1,9 +1,9 @@
-import { describe, it, expect, afterAll, vi } from 'vitest';
+import { describe, it, expect, afterAll, vi } from "vitest";
 // Mock server/auth to avoid Next.js dependency in test environment
-vi.mock('~/server/auth', () => ({ auth: async () => null }));
-import { PrismaClient } from '../../generated/prisma';
-import { createTRPCRouter, createCallerFactory } from '../server/api/trpc';
-import { venueRouter } from '../server/api/routers/venue';
+vi.mock("~/server/auth", () => ({ auth: async () => null }));
+import { PrismaClient } from "../../generated/prisma";
+import { createTRPCRouter, createCallerFactory } from "../server/api/trpc";
+import { venueRouter } from "../server/api/routers/venue";
 
 const db = new PrismaClient();
 
@@ -12,31 +12,37 @@ const testAppRouter = createTRPCRouter({ venue: venueRouter });
 const createCaller = createCallerFactory(testAppRouter);
 
 // Helper to build a caller with a fake session
-type TestSession = { user?: { id: string } } & { expires?: string } | null;
+type TestSession = ({ user?: { id: string } } & { expires?: string }) | null;
 function buildCaller(session: TestSession) {
   const normalized = session
-    ? { user: session.user, expires: session.expires ?? new Date(Date.now() + 3600_000).toISOString() }
+    ? {
+        user: session.user,
+        expires:
+          session.expires ?? new Date(Date.now() + 3600_000).toISOString(),
+      }
     : null;
   const ctx = { db, session: normalized, headers: new Headers() } as const;
   return createCaller(ctx as never);
 }
 
-describe('venue.create mutation', () => {
+describe("venue.create mutation", () => {
   afterAll(async () => {
     await db.$disconnect();
   });
 
-  it('creates a venue and owner assignment', async () => {
+  it("creates a venue and owner assignment", async () => {
     const user = await db.user.create({
       data: { email: `test-owner-${Date.now()}@ex.com` },
     });
     const caller = buildCaller({ user });
     // Ensure deterministic slug outcome
-    await db.venue.deleteMany({ where: { slug: { startsWith: 'alpha-cafe' } } });
+    await db.venue.deleteMany({
+      where: { slug: { startsWith: "alpha-cafe" } },
+    });
     const result = await caller.venue.create({
-      name: 'Alpha Cafe',
-      timezone: 'America/New_York',
-      currency: 'USD',
+      name: "Alpha Cafe",
+      timezone: "America/New_York",
+      currency: "USD",
     });
     expect(result.success).toBe(true);
     expect(result.slug).toMatch(/^alpha-cafe/);
@@ -46,36 +52,38 @@ describe('venue.create mutation', () => {
     expect(staff).not.toBeNull();
   });
 
-  it('appends numeric suffix when slug collides', async () => {
+  it("appends numeric suffix when slug collides", async () => {
     const user = await db.user.create({
       data: { email: `test-slug-${Date.now()}@ex.com` },
     });
     const caller = buildCaller({ user });
-      // Ensure a clean slate for deterministic suffixing
-      await db.venue.deleteMany({ where: { slug: { startsWith: 'collision-place' } } });
+    // Ensure a clean slate for deterministic suffixing
+    await db.venue.deleteMany({
+      where: { slug: { startsWith: "collision-place" } },
+    });
     // First creation
     await caller.venue.create({
-      name: 'Collision Place',
-      timezone: 'America/New_York',
-      currency: 'USD',
+      name: "Collision Place",
+      timezone: "America/New_York",
+      currency: "USD",
     });
     // Second creation with same name
     const second = await caller.venue.create({
-      name: 'Collision Place',
-      timezone: 'America/New_York',
-      currency: 'USD',
+      name: "Collision Place",
+      timezone: "America/New_York",
+      currency: "USD",
     });
     expect(second.slug).toMatch(/collision-place-2$/);
   });
 
-  it('rejects unauthenticated creation', async () => {
+  it("rejects unauthenticated creation", async () => {
     const caller = buildCaller(null);
     await expect(
       caller.venue.create({
-        name: 'No Auth Venue',
-        timezone: 'America/New_York',
-        currency: 'USD',
+        name: "No Auth Venue",
+        timezone: "America/New_York",
+        currency: "USD",
       }),
-    ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+    ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 });

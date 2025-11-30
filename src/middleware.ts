@@ -3,12 +3,12 @@ import { type NextRequest, NextResponse } from "next/server";
 export function middleware(request: NextRequest) {
   const requestId = crypto.randomUUID();
   const response = NextResponse.next();
-  
+
   response.headers.set("x-request-id", requestId);
-  
+
   // Make request ID available for logging
   request.headers.set("x-request-id", requestId);
-  
+
   return response;
 }
 

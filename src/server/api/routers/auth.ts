@@ -110,7 +110,9 @@ export const authRouter = createTRPCRouter({
     .input(
       z.object({
         token: z.string().uuid(),
-        newPassword: z.string().min(8, "Password must be at least 8 characters"),
+        newPassword: z
+          .string()
+          .min(8, "Password must be at least 8 characters"),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -146,7 +148,9 @@ export const authRouter = createTRPCRouter({
         }),
       ]);
 
-      console.log(`[AUTH] Password reset successful for user: ${resetToken.user.email}`);
+      console.log(
+        `[AUTH] Password reset successful for user: ${resetToken.user.email}`,
+      );
 
       return { success: true };
     }),

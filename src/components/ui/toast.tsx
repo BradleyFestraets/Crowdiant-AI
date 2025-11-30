@@ -11,19 +11,35 @@ const ToastContext = React.createContext<{
   remove: (id: number) => void;
 } | null>(null);
 
-export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [toasts, setToasts] = React.useState<Toast[]>([]);
-  const add = (t: Omit<Toast, "id">) => setToasts((prev) => [...prev, { id: Date.now(), ...t }]);
-  const remove = (id: number) => setToasts((prev) => prev.filter((t) => t.id !== id));
+  const add = (t: Omit<Toast, "id">) =>
+    setToasts((prev) => [...prev, { id: Date.now(), ...t }]);
+  const remove = (id: number) =>
+    setToasts((prev) => prev.filter((t) => t.id !== id));
   return (
     <ToastContext.Provider value={{ toasts, add, remove }}>
       {children}
-      <div className="fixed bottom-4 right-4 flex w-80 flex-col gap-2">
+      <div className="fixed right-4 bottom-4 flex w-80 flex-col gap-2">
         {toasts.map((t) => (
-          <div key={t.id} className="rounded-md border bg-background p-3 shadow">
+          <div
+            key={t.id}
+            className="bg-background rounded-md border p-3 shadow"
+          >
             {t.title && <div className="text-sm font-medium">{t.title}</div>}
-            {t.description && <div className="text-sm text-muted-foreground">{t.description}</div>}
-            <button className="mt-2 text-xs text-primary" onClick={() => remove(t.id)}>Dismiss</button>
+            {t.description && (
+              <div className="text-muted-foreground text-sm">
+                {t.description}
+              </div>
+            )}
+            <button
+              className="text-primary mt-2 text-xs"
+              onClick={() => remove(t.id)}
+            >
+              Dismiss
+            </button>
           </div>
         ))}
       </div>

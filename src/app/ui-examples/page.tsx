@@ -2,18 +2,39 @@
 import * as React from "react";
 import Button from "~/components/ui/button";
 import Input from "~/components/ui/input";
-import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription } from "~/components/ui/dialog";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "~/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "~/components/ui/tabs";
-import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "~/components/ui/tooltip";
+import {
+  TooltipProvider,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "~/components/ui/tooltip";
 import { ToastProvider, useToast } from "~/components/ui/toast";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "~/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "~/components/ui/select";
 import Skeleton from "~/components/ui/skeleton";
 import { Table, THead, TBody, TR, TH, TD } from "~/components/ui/table";
 
 function ToastDemo() {
   const { add } = useToast();
   return (
-    <Button onClick={() => add({ title: "Hello", description: "This is a toast" })}>Show Toast</Button>
+    <Button
+      onClick={() => add({ title: "Hello", description: "This is a toast" })}
+    >
+      Show Toast
+    </Button>
   );
 }
 
@@ -61,7 +82,9 @@ export default function Page() {
               </DialogTrigger>
               <DialogContent>
                 <DialogTitle>Example Dialog</DialogTitle>
-                <DialogDescription>Accessible dialog using Radix primitives.</DialogDescription>
+                <DialogDescription>
+                  Accessible dialog using Radix primitives.
+                </DialogDescription>
               </DialogContent>
             </Dialog>
           </section>
@@ -73,8 +96,12 @@ export default function Page() {
                 <TabsTrigger value="account">Account</TabsTrigger>
                 <TabsTrigger value="password">Password</TabsTrigger>
               </TabsList>
-              <TabsContent value="account">Account settings go here.</TabsContent>
-              <TabsContent value="password">Password settings go here.</TabsContent>
+              <TabsContent value="account">
+                Account settings go here.
+              </TabsContent>
+              <TabsContent value="password">
+                Password settings go here.
+              </TabsContent>
             </Tabs>
           </section>
 

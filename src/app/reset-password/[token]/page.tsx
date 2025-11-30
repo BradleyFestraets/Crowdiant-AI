@@ -12,11 +12,11 @@ export default function ResetPasswordPage() {
   const params = useParams();
   const router = useRouter();
   const token = params.token as string;
-  
+
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const { add } = useToast();
-  
+
   const resetPassword = api.auth.resetPassword.useMutation({
     onSuccess: () => {
       add({
@@ -35,7 +35,7 @@ export default function ResetPasswordPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (newPassword !== confirmPassword) {
       add({
         title: "Passwords Don't Match",
@@ -43,7 +43,7 @@ export default function ResetPasswordPage() {
       });
       return;
     }
-    
+
     if (newPassword.length < 8) {
       add({
         title: "Password Too Short",
@@ -51,16 +51,16 @@ export default function ResetPasswordPage() {
       });
       return;
     }
-    
+
     resetPassword.mutate({ token, newPassword });
   };
 
   return (
-      <div className="flex min-h-screen items-center justify-center bg-background px-4">
-        <div className="w-full max-w-md space-y-6">
+    <div className="bg-background flex min-h-screen items-center justify-center px-4">
+      <div className="w-full max-w-md space-y-6">
         <div className="text-center">
           <h1 className="text-3xl font-bold tracking-tight">Reset Password</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="text-muted-foreground mt-2 text-sm">
             Enter your new password below.
           </p>
         </div>
@@ -75,7 +75,9 @@ export default function ResetPasswordPage() {
               type="password"
               placeholder="Enter new password"
               value={newPassword}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewPassword(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setNewPassword(e.target.value)
+              }
               disabled={resetPassword.isPending}
               required
               minLength={8}
@@ -91,7 +93,9 @@ export default function ResetPasswordPage() {
               type="password"
               placeholder="Confirm new password"
               value={confirmPassword}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setConfirmPassword(e.target.value)
+              }
               disabled={resetPassword.isPending}
               required
               minLength={8}
@@ -107,15 +111,12 @@ export default function ResetPasswordPage() {
           </Button>
         </form>
 
-          <div className="text-center text-sm">
-            <Link
-              href="/login"
-              className="text-primary hover:underline"
-            >
-              Back to Login
-            </Link>
-          </div>
+        <div className="text-center text-sm">
+          <Link href="/login" className="text-primary hover:underline">
+            Back to Login
+          </Link>
         </div>
       </div>
+    </div>
   );
 }

@@ -20,7 +20,14 @@ export const logger = pino({
     },
   },
   redact: {
-    paths: ["password", "*.password", "*.passwordHash", "token", "*.token", "authorization"],
+    paths: [
+      "password",
+      "*.password",
+      "*.passwordHash",
+      "token",
+      "*.token",
+      "authorization",
+    ],
     remove: true,
   },
 });

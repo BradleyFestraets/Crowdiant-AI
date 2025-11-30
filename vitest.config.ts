@@ -1,17 +1,18 @@
-import { defineConfig } from 'vitest/config';
-import path from 'node:path';
+import { defineConfig } from "vitest/config";
+import path from "node:path";
 
 export default defineConfig({
   test: {
-    environment: 'node',
+    environment: "node",
     bail: 0,
     env: {
-      DATABASE_URL: 'postgresql://postgres:password@localhost:5432/crowdiant_dev',
+      DATABASE_URL:
+        "postgresql://postgres:password@localhost:5432/crowdiant_dev",
     },
   },
   resolve: {
     alias: {
-      '~': path.resolve(__dirname, 'src'),
+      "~": path.resolve(__dirname, "src"),
     },
   },
 });

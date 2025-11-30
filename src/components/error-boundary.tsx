@@ -28,7 +28,7 @@ export class ErrorBoundary extends React.Component<
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // Log error to monitoring service
     console.error("Error boundary caught:", error, errorInfo);
-    
+
     // TODO: Send to Sentry when configured
     // if (typeof window !== "undefined" && window.Sentry) {
     //   window.Sentry.captureException(error, { extra: errorInfo });
@@ -43,16 +43,17 @@ export class ErrorBoundary extends React.Component<
 
       return (
         <div className="flex min-h-screen items-center justify-center p-4">
-          <div className="max-w-md rounded-lg border bg-background p-6 shadow-lg">
-            <h2 className="mb-2 text-lg font-semibold text-foreground">
+          <div className="bg-background max-w-md rounded-lg border p-6 shadow-lg">
+            <h2 className="text-foreground mb-2 text-lg font-semibold">
               Something went wrong
             </h2>
-            <p className="mb-4 text-sm text-muted-foreground">
-              We encountered an unexpected error. Please try refreshing the page.
+            <p className="text-muted-foreground mb-4 text-sm">
+              We encountered an unexpected error. Please try refreshing the
+              page.
             </p>
             <button
               onClick={() => this.setState({ hasError: false })}
-              className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm"
             >
               Try again
             </button>

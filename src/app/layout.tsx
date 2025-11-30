@@ -29,7 +29,7 @@ function ThemeToggle() {
           localStorage.setItem("theme", next);
         } catch {}
       }}
-      className="fixed bottom-4 left-4 rounded-md border bg-background px-3 py-2 text-sm shadow"
+      className="bg-background fixed bottom-4 left-4 rounded-md border px-3 py-2 text-sm shadow"
     >
       Toggle Theme
     </button>
