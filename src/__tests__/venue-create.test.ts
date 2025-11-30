@@ -17,8 +17,10 @@ function buildCaller(session: TestSession) {
   const normalized = session
     ? { user: session.user, expires: session.expires ?? new Date(Date.now() + 3600_000).toISOString() }
     : null;
+  // Type assertion is needed for test context - session mock doesn't fully implement Session
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
   const ctx = { db, session: normalized, headers: new Headers() } as const;
-  return createCaller(ctx as any);
+  return createCaller(ctx as never);
 }
 
 describe('venue.create mutation', () => {
