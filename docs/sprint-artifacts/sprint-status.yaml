@@ -30,7 +30,7 @@
 # - Dev moves story: backlog → in-progress → review → done
 # - All statuses start as 'backlog' until workflow commands run
 
-generated: 2025-11-30 10:05
+generated: 2025-11-30 18:00
 project: Crowdiant AI
 project_key: crowdiant-os
 tracking_system: file-system
@@ -49,7 +49,7 @@ development_status:
 
   # EPIC 2: User & Venue Management (Sprint 1)
   epic-2: contexted
-  2-1-venue-registration-onboarding: review
+  2-1-venue-registration-onboarding: done
   2-2-staff-invitation-management: backlog
   2-3-user-authentication-login-logout: backlog
   2-4-password-reset-flow: backlog
@@ -201,12 +201,14 @@ development_status:
 # 
 # Current Status Distribution:
 #   Epics: 12 backlog, 2 contexted
-#   Stories: 94 backlog, 0 drafted, 0 ready-for-dev, 0 in-progress, 1 review, 6 done
+#   Stories: 91 backlog, 0 drafted, 0 ready-for-dev, 0 in-progress, 0 review, 7 done
 #   Retrospectives: 13 optional, 1 completed
 #
+# Production: https://crowdiant-ai.vercel.app
+# CI: GitHub Actions (lint, typecheck, format) - GREEN
+# Deploy: Vercel auto-deploy on push to main
+#
 # Next Actions:
-#   1. Code review Story 2.1 (Venue Registration) → merge → mark done.
-#   2. Draft Story 2.2 (Staff Invitation) – requires email provider decision (Resend/SMTP).
-#   3. Implement Story 2.3 (Login page) – NextAuth credentials flow + UI components.
-#   4. Add test database seeding/factory utilities for faster test data creation.
-#   5. Consider devcontainer setup for consistent cross-session environment.
+#   1. Draft Story 2.2 (Staff Invitation) – requires email provider decision (Resend/SMTP).
+#   2. Implement Story 2.3 (Login page) – NextAuth credentials flow + UI components.
+#   3. Add test database seeding/factory utilities for faster test data creation.
