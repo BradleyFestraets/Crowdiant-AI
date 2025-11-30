@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { sendPasswordResetEmail } from "~/lib/email";
 
 /**
  * Authentication Router
@@ -60,7 +61,7 @@ export const authRouter = createTRPCRouter({
   /**
    * Request password reset
    * Generates secure token and stores in database with 1-hour expiry
-   * In production, would send email via Resend/SendGrid
+   * Sends email via Resend
    */
   requestPasswordReset: publicProcedure
     .input(
@@ -92,12 +93,17 @@ export const authRouter = createTRPCRouter({
         },
       });
 
-      // TODO (Epic 9): Send email with reset link
-      // const resetUrl = `${process.env.NEXTAUTH_URL}/reset-password/${resetToken}`;
-      // await sendEmail({ to: user.email, subject: "Password Reset", resetUrl });
-
-      console.log(`[AUTH] Password reset requested for: ${input.email}`);
-      console.log(`[AUTH] Reset token (dev only): ${resetToken}`);
+      // Send password reset email
+      try {
+        await sendPasswordResetEmail({
+          to: user.email,
+          token: resetToken,
+        });
+        console.log(`[AUTH] Password reset email sent to: ${input.email}`);
+      } catch (error) {
+        console.error(`[AUTH] Failed to send password reset email:`, error);
+        // Still return success to prevent email enumeration
+      }
 
       return { success: true };
     }),
