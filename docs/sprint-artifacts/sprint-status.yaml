@@ -30,7 +30,7 @@
 # - Dev moves story: backlog → in-progress → review → done
 # - All statuses start as 'backlog' until workflow commands run
 
-generated: 2025-11-30 18:00
+generated: 2025-11-30 22:25
 project: Crowdiant AI
 project_key: crowdiant-os
 tracking_system: file-system
@@ -50,7 +50,7 @@ development_status:
   # EPIC 2: User & Venue Management (Sprint 1)
   epic-2: contexted
   2-1-venue-registration-onboarding: done
-  2-2-staff-invitation-management: backlog
+  2-2-staff-invitation-management: done
   2-3-user-authentication-login-logout: backlog
   2-4-password-reset-flow: backlog
   2-5-multi-venue-access-switching: backlog
@@ -201,7 +201,7 @@ development_status:
 # 
 # Current Status Distribution:
 #   Epics: 12 backlog, 2 contexted
-#   Stories: 91 backlog, 0 drafted, 0 ready-for-dev, 0 in-progress, 0 review, 7 done
+#   Stories: 90 backlog, 0 drafted, 0 ready-for-dev, 0 in-progress, 0 review, 8 done
 #   Retrospectives: 13 optional, 1 completed
 #
 # Production: https://crowdiant-ai.vercel.app
@@ -209,6 +209,6 @@ development_status:
 # Deploy: Vercel auto-deploy on push to main
 #
 # Next Actions:
-#   1. Draft Story 2.2 (Staff Invitation) – requires email provider decision (Resend/SMTP).
-#   2. Implement Story 2.3 (Login page) – NextAuth credentials flow + UI components.
+#   1. Implement Story 2.3 (Login page) – NextAuth credentials flow + UI components.
+#   2. Implement Story 2.4 (Password Reset) – already has pages, needs polish.
 #   3. Add test database seeding/factory utilities for faster test data creation.
