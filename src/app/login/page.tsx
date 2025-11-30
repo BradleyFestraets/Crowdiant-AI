@@ -7,7 +7,13 @@ import { useState, Suspense } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
 
 /**
  * Login Page
@@ -96,7 +102,7 @@ function LoginForm() {
                   <Label htmlFor="password">Password</Label>
                   <Link
                     href="/forgot-password"
-                    className="text-sm text-primary hover:underline"
+                    className="text-primary text-sm hover:underline"
                   >
                     Forgot password?
                   </Link>
@@ -131,7 +137,7 @@ function LoginForm() {
               Don&apos;t have an account?{" "}
               <Link
                 href="/register/venue"
-                className="font-medium text-primary hover:underline"
+                className="text-primary font-medium hover:underline"
               >
                 Create a venue
               </Link>
