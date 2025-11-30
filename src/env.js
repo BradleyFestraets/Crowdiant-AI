@@ -1,19 +1,18 @@
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
+const isCI = !!process.env.CI || !!process.env.SKIP_ENV_VALIDATION;
+
 export const env = createEnv({
   /**
    * Specify your server-side environment variables schema here. This way you can ensure the app
    * isn't built with invalid env vars.
    */
   server: {
-    AUTH_SECRET:
-      process.env.NODE_ENV === "production"
-        ? z.string()
-        : z.string().optional(),
+    AUTH_SECRET: isCI ? z.string().optional() : z.string(),
     AUTH_DISCORD_ID: z.string().optional(),
     AUTH_DISCORD_SECRET: z.string().optional(),
-    DATABASE_URL: z.string().url(),
+    DATABASE_URL: isCI ? z.string().optional() : z.string().url(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
