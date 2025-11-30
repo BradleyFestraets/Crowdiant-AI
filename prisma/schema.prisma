@@ -37,6 +37,7 @@ model Venue {
   
   // Relations (defined in future epics)
   staff                   StaffAssignment[]
+  invitations             StaffInvitation[]
   // menus                Menu[]
   // tables               Table[]
   // tabs                 Tab[]
@@ -67,6 +68,7 @@ model User {
   accounts                Account[]
   sessions                Session[]
   passwordResetTokens     PasswordResetToken[]
+  invitationsSent         StaffInvitation[] @relation("InvitedBy")
   // trustScores          TrustScore[] (Epic 7)
   // tabs                 Tab[] (Epic 3)
   
@@ -164,4 +166,26 @@ model PasswordResetToken {
   @@index([token])
   @@index([userId])
   @@map("password_reset_tokens")
+}
+
+model StaffInvitation {
+  id                      String   @id @default(cuid())
+  venueId                 String
+  email                   String
+  role                    StaffRole
+  token                   String   @unique // Secure invitation token
+  expiresAt               DateTime
+  invitedById             String   // User who sent invitation
+  acceptedAt              DateTime?
+  
+  createdAt               DateTime @default(now())
+  
+  venue                   Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  invitedBy               User     @relation("InvitedBy", fields: [invitedById], references: [id])
+  
+  @@unique([venueId, email]) // One pending invite per email per venue
+  @@index([token])
+  @@index([venueId])
+  @@index([email])
+  @@map("staff_invitations")
 }

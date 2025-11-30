@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
-import Button from "~/components/ui/button";
-import Input from "~/components/ui/input";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
 import {
   Dialog,
   DialogTrigger,
@@ -25,7 +25,14 @@ import {
   SelectItem,
 } from "~/components/ui/select";
 import Skeleton from "~/components/ui/skeleton";
-import { Table, THead, TBody, TR, TH, TD } from "~/components/ui/table";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "~/components/ui/table";
 
 function ToastDemo() {
   const { add } = useToast();
@@ -123,25 +130,25 @@ export default function Page() {
           <section className="space-y-2">
             <h2 className="text-lg font-medium">Table</h2>
             <Table>
-              <THead>
-                <TR>
-                  <TH>Name</TH>
-                  <TH>Status</TH>
-                  <TH>Role</TH>
-                </TR>
-              </THead>
-              <TBody>
-                <TR>
-                  <TD>Jane</TD>
-                  <TD>Active</TD>
-                  <TD>Server</TD>
-                </TR>
-                <TR>
-                  <TD>Sam</TD>
-                  <TD>Inactive</TD>
-                  <TD>Chef</TD>
-                </TR>
-              </TBody>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Role</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell>Jane</TableCell>
+                  <TableCell>Active</TableCell>
+                  <TableCell>Server</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Sam</TableCell>
+                  <TableCell>Inactive</TableCell>
+                  <TableCell>Chef</TableCell>
+                </TableRow>
+              </TableBody>
             </Table>
           </section>
 
