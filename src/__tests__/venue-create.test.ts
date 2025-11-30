@@ -12,9 +12,13 @@ const testAppRouter = createTRPCRouter({ venue: venueRouter });
 const createCaller = createCallerFactory(testAppRouter);
 
 // Helper to build a caller with a fake session
-function buildCaller(session: any) {
-  const ctx = { db, session, headers: new Headers() } as const;
-  return createCaller(ctx);
+type TestSession = { user?: { id: string } } & { expires?: string } | null;
+function buildCaller(session: TestSession) {
+  const normalized = session
+    ? { user: session.user, expires: session.expires ?? new Date(Date.now() + 3600_000).toISOString() }
+    : null;
+  const ctx = { db, session: normalized, headers: new Headers() } as const;
+  return createCaller(ctx as any);
 }
 
 describe('venue.create mutation', () => {
@@ -27,6 +31,8 @@ describe('venue.create mutation', () => {
       data: { email: `test-owner-${Date.now()}@ex.com` },
     });
     const caller = buildCaller({ user });
+    // Ensure deterministic slug outcome
+    await db.venue.deleteMany({ where: { slug: { startsWith: 'alpha-cafe' } } });
     const result = await caller.venue.create({
       name: 'Alpha Cafe',
       timezone: 'America/New_York',
@@ -45,6 +51,8 @@ describe('venue.create mutation', () => {
       data: { email: `test-slug-${Date.now()}@ex.com` },
     });
     const caller = buildCaller({ user });
+      // Ensure a clean slate for deterministic suffixing
+      await db.venue.deleteMany({ where: { slug: { startsWith: 'collision-place' } } });
     // First creation
     await caller.venue.create({
       name: 'Collision Place',
