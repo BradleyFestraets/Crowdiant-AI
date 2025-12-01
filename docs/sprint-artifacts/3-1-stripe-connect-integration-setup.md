@@ -1,6 +1,6 @@
 # Story 3.1: Stripe Connect Integration Setup
 
-**Status:** in-progress  
+**Status:** done  
 **Story ID:** E3.1  
 **Epic:** Epic 3 - Express Checkout System  
 **Sprint:** Sprint 2  
