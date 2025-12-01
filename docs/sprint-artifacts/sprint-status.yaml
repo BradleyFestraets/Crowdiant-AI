@@ -30,7 +30,7 @@
 # - Dev moves story: backlog → in-progress → review → done
 # - All statuses start as 'backlog' until workflow commands run
 
-generated: 2025-12-01 10:00
+generated: 2025-12-01 12:30
 project: Crowdiant AI
 project_key: crowdiant-os
 tracking_system: file-system
@@ -54,10 +54,10 @@ development_status:
   2-3-user-authentication-login-logout: done
   2-4-password-reset-flow: done
   2-5-multi-venue-access-switching: done
-  2-6-customer-account-creation-optional: backlog
-  2-7-customer-profile-management: backlog
-  2-8-customer-visit-history: backlog
-  2-9-role-based-access-control-testing: backlog
+  2-6-customer-account-creation-optional: blocked  # Depends on Express Checkout (Epic 3)
+  2-7-customer-profile-management: blocked  # Depends on 2-6
+  2-8-customer-visit-history: blocked  # Depends on 2-7
+  2-9-role-based-access-control-testing: done
   epic-2-retrospective: optional
 
   # EPIC 3: Express Checkout System (Sprint 2-3)
@@ -201,14 +201,18 @@ development_status:
 # 
 # Current Status Distribution:
 #   Epics: 12 backlog, 2 contexted
-#   Stories: 88 backlog, 0 drafted, 0 ready-for-dev, 0 in-progress, 0 review, 10 done
+#   Stories: 85 backlog, 3 blocked, 0 drafted, 0 ready-for-dev, 0 in-progress, 0 review, 10 done
 #   Retrospectives: 13 optional, 1 completed
 #
 # Production: https://crowdiant-ai.vercel.app
 # CI: GitHub Actions (lint, typecheck, format) - GREEN
 # Deploy: Vercel auto-deploy on push to main
 #
+# EPIC 2 STATUS:
+#   ✅ Stories 2.1-2.5, 2.9 COMPLETE (user mgmt, auth, RBAC)
+#   🚫 Stories 2.6-2.8 BLOCKED (customer features depend on Express Checkout)
+#
 # Next Actions:
-#   1. Implement Story 2.5 (Multi-Venue Access & Switching) – venue selector dropdown.
-#   2. Implement Story 2.6 (Customer Account Creation) – optional customer signup.
-#   3. Add test database seeding/factory utilities for faster test data creation.
+#   1. Complete Epic 2 Retrospective (optional)
+#   2. Begin Epic 3: Express Checkout System (Stripe Connect integration)
+#   3. Stories 2.6-2.8 will be unblocked after Express Checkout MVP
