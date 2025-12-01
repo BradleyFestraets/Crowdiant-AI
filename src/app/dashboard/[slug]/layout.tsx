@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { db } from "~/server/db";
 import Link from "next/link";
 import { LogoutButton } from "~/components/auth/LogoutButton";
+import { VenueSelector } from "~/components/venue/VenueSelector";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -42,12 +43,40 @@ export default async function DashboardLayout({
     redirect("/dashboard");
   }
 
+  // Get all venues the user has access to for the venue selector
+  const allStaffAssignments = await db.staffAssignment.findMany({
+    where: {
+      userId: session.user.id,
+      deletedAt: null,
+    },
+    include: {
+      venue: true,
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+
+  const venues = allStaffAssignments.map((sa) => ({
+    id: sa.venue.id,
+    name: sa.venue.name,
+    slug: sa.venue.slug,
+    role: sa.role,
+  }));
+
+  const currentVenue = {
+    id: venue.id,
+    name: venue.name,
+    slug: venue.slug,
+    role: staffAssignment.role,
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="border-b bg-white shadow-sm">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          {/* Left side - Logo and venue name */}
+          {/* Left side - Logo and venue selector */}
           <div className="flex items-center gap-4">
             <Link
               href={`/dashboard/${slug}`}
@@ -56,7 +85,7 @@ export default async function DashboardLayout({
               <span className="text-primary text-xl font-bold">Crowdiant</span>
             </Link>
             <span className="text-gray-300">|</span>
-            <span className="font-medium text-gray-700">{venue.name}</span>
+            <VenueSelector currentVenue={currentVenue} venues={venues} />
           </div>
 
           {/* Right side - Navigation and user menu */}
@@ -85,7 +114,7 @@ export default async function DashboardLayout({
                 <p className="text-sm font-medium text-gray-900">
                   {session.user.name}
                 </p>
-                <p className="text-xs text-gray-500">{staffAssignment.role}</p>
+                <p className="text-xs text-gray-500">Logged in</p>
               </div>
               <LogoutButton variant="ghost" size="sm" />
             </div>
