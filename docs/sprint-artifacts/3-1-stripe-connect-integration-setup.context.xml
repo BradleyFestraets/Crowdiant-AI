@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context story-id="E3.1" generated="2025-12-01">
+  <metadata>
+    <title>Stripe Connect Integration Setup</title>
+    <epic>Epic 3 - Express Checkout System</epic>
+    <sprint>Sprint 2</sprint>
+    <status>in-progress</status>
+    <branch>feature/story-3.1-stripe-connect</branch>
+  </metadata>
+
+  <story-definition>
+    <file path="docs/sprint-artifacts/3-1-stripe-connect-integration-setup.md" />
+    <file path="docs/sprint-artifacts/epic-3-context.md" />
+  </story-definition>
+
+  <architecture-references>
+    <file path="docs/architecture.md" sections="integration-points,security-architecture" />
+    <file path="docs/prd.md" sections="express-checkout" />
+    <file path="docs/sprint-artifacts/epics-and-stories.md" sections="epic-3,story-e3.1" />
+  </architecture-references>
+
+  <dependencies>
+    <epic id="1" status="done" description="Foundation & Platform Setup" />
+    <epic id="2" status="in-progress" description="Venue & Staff Management" />
+    <story id="1.1" status="done" description="T3 Stack Setup" />
+    <story id="1.2" status="done" description="Database Schema" />
+    <story id="1.3" status="done" description="Authentication Framework" />
+    <package name="stripe" version="^20.0.0" />
+  </dependencies>
+
+  <implementation>
+    <module name="stripe-client">
+      <file path="src/lib/stripe/client.ts" purpose="Stripe SDK singleton with lazy init and retry config">
+        <exports>
+          <function name="getStripe" returns="Stripe" description="Get or create Stripe client instance" />
+        </exports>
+        <config>
+          <api-version>2025-11-17.clover</api-version>
+          <max-retries>3</max-retries>
+          <timeout-ms>30000</timeout-ms>
+        </config>
+      </file>
+    </module>
+
+    <module name="stripe-config">
+      <file path="src/lib/stripe/config.ts" purpose="Stripe configuration constants">
+        <exports>
+          <constant name="STRIPE_API_VERSION" value="2025-11-17.clover" />
+          <constant name="STRIPE_CONFIG" type="object" description="Pre-auth defaults by venue type" />
+          <constant name="STRIPE_WEBHOOK_EVENTS" type="array" description="Subscribed webhook events" />
+        </exports>
+        <pre-auth-defaults>
+          <venue-type name="bar" amount-cents="3000" />
+          <venue-type name="casual_dining" amount-cents="5000" />
+          <venue-type name="fine_dining" amount-cents="10000" />
+          <venue-type name="default" amount-cents="5000" />
+        </pre-auth-defaults>
+      </file>
+    </module>
+
+    <module name="stripe-connect">
+      <file path="src/lib/stripe/connect.ts" purpose="Stripe Connect account operations">
+        <exports>
+          <function name="createConnectAccount" params="venueId, email, businessName, venueUrl?" returns="Promise&lt;Stripe.Account&gt;" />
+          <function name="createAccountLink" params="accountId, returnUrl, refreshUrl" returns="Promise&lt;Stripe.AccountLink&gt;" />
+          <function name="getAccountDetails" params="accountId" returns="Promise&lt;Stripe.Account&gt;" />
+          <function name="createDashboardLoginLink" params="accountId" returns="Promise&lt;Stripe.LoginLink&gt;" />
+          <function name="isAccountReady" params="accountId" returns="Promise&lt;boolean&gt;" />
+          <function name="determineOnboardingStatus" params="account" returns="OnboardingStatus" />
+        </exports>
+        <onboarding-statuses>
+          <status value="NOT_STARTED" />
+          <status value="IN_PROGRESS" />
+          <status value="COMPLETE" />
+          <status value="RESTRICTED" />
+        </onboarding-statuses>
+      </file>
+    </module>
+
+    <module name="stripe-webhooks">
+      <file path="src/lib/stripe/webhooks.ts" purpose="Stripe webhook event handlers">
+        <exports>
+          <function name="handleAccountUpdated" params="account: Stripe.Account" returns="Promise&lt;void&gt;" />
+          <function name="handleAccountAuthorized" params="accountId: string" returns="Promise&lt;void&gt;" />
+          <function name="handleAccountDeauthorized" params="accountId: string" returns="Promise&lt;void&gt;" />
+          <function name="handlePaymentSucceeded" params="paymentIntent: Stripe.PaymentIntent" returns="Promise&lt;void&gt;" />
+          <function name="handlePaymentFailed" params="paymentIntent: Stripe.PaymentIntent" returns="Promise&lt;void&gt;" />
+          <function name="handlePaymentCanceled" params="paymentIntent: Stripe.PaymentIntent" returns="Promise&lt;void&gt;" />
+          <function name="handlePaymentRequiresAction" params="paymentIntent: Stripe.PaymentIntent" returns="Promise&lt;void&gt;" />
+          <function name="handleDisputeCreated" params="dispute: Stripe.Dispute" returns="Promise&lt;void&gt;" />
+          <function name="handlePayoutFailed" params="payout: Stripe.Payout" returns="Promise&lt;void&gt;" />
+        </exports>
+        <note>Payment and dispute handlers are stubs pending Tab model in Story 3.2+</note>
+      </file>
+    </module>
+
+    <module name="stripe-index">
+      <file path="src/lib/stripe/index.ts" purpose="Module re-exports">
+        <re-exports>
+          <from module="./client">getStripe</from>
+          <from module="./config">STRIPE_API_VERSION, STRIPE_CONFIG, STRIPE_WEBHOOK_EVENTS</from>
+          <from module="./connect">createConnectAccount, createAccountLink, getAccountDetails, createDashboardLoginLink, isAccountReady, determineOnboardingStatus</from>
+          <from module="./webhooks">handleAccountUpdated, handleAccountAuthorized, handleAccountDeauthorized, handlePaymentSucceeded, handlePaymentFailed, handlePaymentCanceled, handlePaymentRequiresAction, handleDisputeCreated, handlePayoutFailed</from>
+        </re-exports>
+      </file>
+    </module>
+
+    <module name="webhook-route">
+      <file path="src/app/api/webhooks/stripe/route.ts" purpose="Stripe webhook endpoint">
+        <route method="POST" path="/api/webhooks/stripe" />
+        <features>
+          <feature>Raw body parsing for signature verification</feature>
+          <feature>Stripe signature verification via constructEvent</feature>
+          <feature>Event routing to appropriate handlers</feature>
+          <feature>Structured logging with event type/id</feature>
+          <feature>200 on success, 400 on signature failure</feature>
+        </features>
+        <handled-events>
+          <event type="account.updated" />
+          <event type="account.application.authorized" />
+          <event type="account.application.deauthorized" />
+          <event type="payment_intent.succeeded" />
+          <event type="payment_intent.payment_failed" />
+          <event type="payment_intent.canceled" />
+          <event type="payment_intent.requires_action" />
+          <event type="charge.dispute.created" />
+          <event type="payout.failed" />
+        </handled-events>
+      </file>
+    </module>
+
+    <module name="stripe-router">
+      <file path="src/server/api/routers/stripe.ts" purpose="tRPC procedures for Stripe operations">
+        <procedures>
+          <procedure name="startOnboarding" type="mutation" access="venueProtectedProcedure">
+            <input>venueId: string</input>
+            <output>{ onboardingUrl: string, accountId: string }</output>
+            <description>Creates Connect account and returns onboarding URL</description>
+          </procedure>
+          <procedure name="getStatus" type="query" access="venueProtectedProcedure">
+            <input>venueId: string</input>
+            <output>{ hasAccount, isOnboarded, status, accountId?, chargesEnabled?, payoutsEnabled?, requirements? }</output>
+            <description>Returns full account status and onboarding state</description>
+          </procedure>
+          <procedure name="getOnboardingLink" type="mutation" access="venueProtectedProcedure">
+            <input>venueId: string</input>
+            <output>{ onboardingUrl: string }</output>
+            <description>Generates new onboarding link for incomplete accounts</description>
+          </procedure>
+          <procedure name="getDashboardLink" type="mutation" access="venueProtectedProcedure">
+            <input>venueId: string</input>
+            <output>{ dashboardUrl: string }</output>
+            <description>Generates Stripe Express dashboard login link</description>
+          </procedure>
+          <procedure name="updatePreAuthSettings" type="mutation" access="venueProtectedProcedure" roles="OWNER,MANAGER">
+            <input>venueId: string, preAuthAmountCents: number</input>
+            <output>{ success: boolean, preAuthAmountCents: number }</output>
+            <description>Updates venue pre-authorization amount setting</description>
+          </procedure>
+          <procedure name="createPreAuth" type="mutation" access="venueProtectedProcedure">
+            <input>venueId: string, amountCents: number, customerId?: string, paymentMethodId?: string, metadata?: object</input>
+            <output>{ paymentIntentId: string, clientSecret: string, status: string }</output>
+            <description>Creates PaymentIntent with capture_method: manual for pre-authorization</description>
+          </procedure>
+          <procedure name="capturePreAuth" type="mutation" access="venueProtectedProcedure">
+            <input>venueId: string, paymentIntentId: string, amountCents?: number</input>
+            <output>{ amountCaptured: number, status: string }</output>
+            <description>Captures held amount (full or partial)</description>
+          </procedure>
+          <procedure name="cancelPreAuth" type="mutation" access="venueProtectedProcedure">
+            <input>venueId: string, paymentIntentId: string, reason?: string</input>
+            <output>{ status: string }</output>
+            <description>Releases pre-authorization hold</description>
+          </procedure>
+        </procedures>
+      </file>
+    </module>
+
+    <modified-files>
+      <file path="src/env.js" changes="Added Stripe environment variables">
+        <added-vars>
+          <var name="STRIPE_SECRET_KEY" type="server" required="true" />
+          <var name="STRIPE_WEBHOOK_SECRET" type="server" required="true" />
+          <var name="STRIPE_PUBLISHABLE_KEY" type="server" required="true" />
+          <var name="NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY" type="client" required="true" />
+        </added-vars>
+      </file>
+      <file path="src/server/api/root.ts" changes="Added stripeRouter to appRouter">
+        <added-router name="stripe" import="./routers/stripe" />
+      </file>
+    </modified-files>
+  </implementation>
+
+  <database-impact>
+    <model name="Venue" changes="Uses existing stripeAccountId and stripeOnboarded fields">
+      <field name="stripeAccountId" type="String?" description="Stripe Connect account ID" />
+      <field name="stripeOnboarded" type="Boolean" default="false" description="Whether onboarding is complete" />
+      <field name="preAuthAmountCents" type="Int" default="5000" description="Default pre-auth amount in cents" />
+    </model>
+    <note>No schema migrations required - fields already exist from Epic 1</note>
+  </database-impact>
+
+  <api-reference>
+    <trpc-router name="stripe" base-procedure="venueProtectedProcedure">
+      <endpoint name="stripe.startOnboarding" method="mutation" />
+      <endpoint name="stripe.getStatus" method="query" />
+      <endpoint name="stripe.getOnboardingLink" method="mutation" />
+      <endpoint name="stripe.getDashboardLink" method="mutation" />
+      <endpoint name="stripe.updatePreAuthSettings" method="mutation" />
+      <endpoint name="stripe.createPreAuth" method="mutation" />
+      <endpoint name="stripe.capturePreAuth" method="mutation" />
+      <endpoint name="stripe.cancelPreAuth" method="mutation" />
+    </trpc-router>
+    <rest-endpoint path="/api/webhooks/stripe" method="POST" auth="signature" />
+  </api-reference>
+
+  <testing-notes>
+    <test-mode>
+      <note>Use Stripe test mode keys for development</note>
+      <note>Test webhooks via Stripe CLI: stripe listen --forward-to localhost:3000/api/webhooks/stripe</note>
+      <note>Use test card 4242424242424242 for successful payments</note>
+    </test-mode>
+    <unit-tests>
+      <test>Stripe client singleton initialization</test>
+      <test>Onboarding status determination logic</test>
+      <test>Webhook event parsing and routing</test>
+    </unit-tests>
+    <integration-tests>
+      <test>Create Connect account in test mode</test>
+      <test>Generate and validate onboarding links</test>
+      <test>Create/capture/cancel payment intents</test>
+      <test>Webhook signature verification</test>
+    </integration-tests>
+  </testing-notes>
+
+  <security-considerations>
+    <item>PCI compliance via Stripe Elements - no card data touches server</item>
+    <item>Webhook signature verification prevents replay attacks</item>
+    <item>All secrets in environment variables, never in code</item>
+    <item>venueProtectedProcedure ensures venue-scoped access</item>
+    <item>Role checks for sensitive operations (updatePreAuthSettings)</item>
+  </security-considerations>
+
+  <next-stories>
+    <story id="E3.2" title="Open Tab with Pre-Authorization" dependencies="E3.1">
+      <uses>stripe.createPreAuth for card holds</uses>
+      <uses>Webhook handlers for payment status updates</uses>
+    </story>
+    <story id="E3.3" title="Real-Time Customer Tab View" dependencies="E3.2" />
+    <story id="E3.4" title="Customer Self-Close with Tip" dependencies="E3.2,E3.3">
+      <uses>stripe.capturePreAuth for final charge</uses>
+    </story>
+  </next-stories>
+</story-context>

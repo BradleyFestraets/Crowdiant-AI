@@ -2,6 +2,7 @@ import { authRouter } from "~/server/api/routers/auth";
 import { healthRouter } from "~/server/api/routers/health";
 import { venueRouter } from "~/server/api/routers/venue";
 import { userRouter } from "~/server/api/routers/user";
+import { stripeRouter } from "~/server/api/routers/stripe";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 
 /**
@@ -14,6 +15,7 @@ export const appRouter = createTRPCRouter({
   auth: authRouter,
   venue: venueRouter,
   user: userRouter,
+  stripe: stripeRouter,
 });
 
 // export type definition of API

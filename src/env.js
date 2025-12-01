@@ -18,6 +18,10 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
+    // Stripe - Story 3.1
+    STRIPE_SECRET_KEY: z.string().optional(), // Optional for dev, required for production
+    STRIPE_WEBHOOK_SECRET: z.string().optional(), // For webhook signature verification
+    STRIPE_PUBLISHABLE_KEY: z.string().optional(), // For client-side Stripe.js
   },
 
   /**
@@ -27,6 +31,7 @@ export const env = createEnv({
    */
   client: {
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(), // For Stripe.js
   },
 
   /**
@@ -41,6 +46,12 @@ export const env = createEnv({
     RESEND_API_KEY: process.env.RESEND_API_KEY || undefined,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL || undefined,
     NODE_ENV: process.env.NODE_ENV,
+    // Stripe - Story 3.1
+    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || undefined,
+    STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || undefined,
+    STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY || undefined,
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
+      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || undefined,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

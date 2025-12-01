@@ -177,6 +177,8 @@ const enforceVenueAccess = t.middleware(async ({ ctx, next, getRawInput }) => {
   return next({
     ctx: {
       ...ctx,
+      // Preserve narrowed session type from enforceUserIsAuthed
+      session: ctx.session,
       // Add assignment to context for downstream use
       venueAssignment: assignment,
     },
